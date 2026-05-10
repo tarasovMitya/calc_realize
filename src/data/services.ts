@@ -1,0 +1,842 @@
+import type { Category } from "../types/calculator";
+
+export const categories: Category[] = [
+  {
+    id: "furniture",
+    name: "Сборка мебели",
+    icon: "🛋️",
+    services: [
+      {
+        id: "wardrobe",
+        name: "Сборка шкафа",
+        description: "Корпусный, купе или IKEA",
+        basePrice: 1000,
+        fields: [
+          {
+            id: "type",
+            type: "select",
+            label: "Тип шкафа",
+            defaultValue: "corpus",
+            options: [
+              { label: "Корпусный", value: "corpus", price: 0 },
+              { label: "Купе", value: "coupe", price: 1500 },
+              { label: "IKEA (PAX и др.)", value: "ikea", price: 500 },
+            ],
+          },
+          {
+            id: "count",
+            type: "stepper",
+            label: "Количество шкафов",
+            priceMultiplier: true,
+            defaultValue: 1,
+            min: 1,
+            max: 10,
+          },
+        ],
+      },
+      {
+        id: "dresser",
+        name: "Сборка комода",
+        description: "Учитывается количество ящиков",
+        basePrice: 750,
+        fields: [
+          {
+            id: "count",
+            type: "stepper",
+            label: "Количество комодов",
+            priceMultiplier: true,
+            defaultValue: 1,
+            min: 1,
+            max: 10,
+          },
+          {
+            id: "complexity",
+            type: "select",
+            label: "Сложность сборки",
+            defaultValue: "simple",
+            options: [
+              { label: "Простой (до 4 ящиков)", value: "simple", price: 0 },
+              { label: "Средний (5–8 ящиков)", value: "medium", price: 300 },
+              { label: "Сложный (9+ ящиков)", value: "complex", price: 1000 },
+            ],
+          },
+        ],
+      },
+      {
+        id: "table",
+        name: "Сборка стола",
+        description: "Компьютерный или письменный",
+        basePrice: 1000,
+        fields: [
+          {
+            id: "type",
+            type: "select",
+            label: "Тип стола",
+            defaultValue: "desk",
+            options: [
+              { label: "Письменный", value: "desk", price: 0 },
+              { label: "Компьютерный угловой", value: "corner", price: 500 },
+              { label: "Трансформер / сложный", value: "complex", price: 1500 },
+            ],
+          },
+          {
+            id: "count",
+            type: "stepper",
+            label: "Количество столов",
+            priceMultiplier: true,
+            defaultValue: 1,
+            min: 1,
+            max: 5,
+          },
+        ],
+      },
+      {
+        id: "bed",
+        name: "Сборка кровати",
+        description: "С основанием и подъёмным механизмом",
+        basePrice: 1000,
+        fields: [
+          {
+            id: "size",
+            type: "select",
+            label: "Размер кровати",
+            defaultValue: "single",
+            options: [
+              { label: "Односпальная", value: "single", price: 0 },
+              { label: "Двуспальная", value: "double", price: 500 },
+              { label: "King-size", value: "king", price: 1000 },
+            ],
+          },
+          {
+            id: "lift",
+            type: "toggle",
+            label: "Подъёмный механизм?",
+            price: 1500,
+            defaultValue: false,
+          },
+        ],
+      },
+      {
+        id: "kitchen-set",
+        name: "Сборка кухонного гарнитура",
+        description: "За погонный метр, включая врезку",
+        basePrice: 7000,
+        fields: [
+          {
+            id: "meters",
+            type: "stepper",
+            label: "Погонных метров гарнитура",
+            priceMultiplier: true,
+            defaultValue: 1,
+            min: 1,
+            max: 10,
+          },
+          {
+            id: "sink",
+            type: "toggle",
+            label: "Врезка мойки?",
+            price: 2000,
+            defaultValue: false,
+          },
+        ],
+      },
+      {
+        id: "wardrobe-room",
+        name: "Сборка гардеробной",
+        description: "Размер и конфигурация",
+        basePrice: 3000,
+        fields: [
+          {
+            id: "size",
+            type: "select",
+            label: "Размер гардеробной",
+            defaultValue: "small",
+            options: [
+              { label: "Маленькая (до 4 м²)", value: "small", price: 0 },
+              { label: "Средняя (4–8 м²)", value: "medium", price: 2000 },
+              { label: "Большая (8+ м²)", value: "large", price: 5000 },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "repairs",
+    name: "Мелкий ремонт",
+    icon: "🔨",
+    services: [
+      {
+        id: "curtain-rod",
+        name: "Установка карниза",
+        description: "Потолочный или настенный",
+        basePrice: 750,
+        fields: [
+          {
+            id: "type",
+            type: "select",
+            label: "Тип карниза",
+            defaultValue: "wall",
+            options: [
+              { label: "Настенный", value: "wall", price: 0 },
+              { label: "Потолочный", value: "ceiling", price: 500 },
+            ],
+          },
+          {
+            id: "count",
+            type: "stepper",
+            label: "Количество карнизов",
+            priceMultiplier: true,
+            defaultValue: 1,
+            min: 1,
+            max: 10,
+          },
+        ],
+      },
+      {
+        id: "blinds",
+        name: "Установка жалюзи / штор",
+        description: "Рулонные, горизонтальные, навеска",
+        basePrice: 750,
+        fields: [
+          {
+            id: "type",
+            type: "select",
+            label: "Тип",
+            defaultValue: "roller",
+            options: [
+              { label: "Рулонные шторы", value: "roller", price: 0 },
+              { label: "Жалюзи", value: "blinds", price: 0 },
+              { label: "Навеска штор", value: "curtains", price: 0 },
+            ],
+          },
+          {
+            id: "count",
+            type: "stepper",
+            label: "Количество окон",
+            priceMultiplier: true,
+            defaultValue: 1,
+            min: 1,
+            max: 15,
+          },
+        ],
+      },
+      {
+        id: "mirror",
+        name: "Навеска зеркала",
+        description: "С учётом веса и типа стены",
+        basePrice: 750,
+        fields: [
+          {
+            id: "wall",
+            type: "select",
+            label: "Материал стены",
+            defaultValue: "drywall",
+            options: [
+              { label: "Гипсокартон", value: "drywall", price: 0 },
+              { label: "Кирпич / газоблок", value: "brick", price: 500 },
+              { label: "Бетон", value: "concrete", price: 1000 },
+            ],
+          },
+          {
+            id: "heavy",
+            type: "toggle",
+            label: "Зеркало тяжёлое (>15 кг)?",
+            price: 500,
+            defaultValue: false,
+          },
+        ],
+      },
+      {
+        id: "tv-bracket",
+        name: "Установка кронштейна / ТВ",
+        description: "ТВ, проектор, монитор",
+        basePrice: 750,
+        fields: [
+          {
+            id: "wall",
+            type: "select",
+            label: "Материал стены",
+            defaultValue: "drywall",
+            options: [
+              { label: "Гипсокартон", value: "drywall", price: 0 },
+              { label: "Кирпич / бетон", value: "concrete", price: 500 },
+            ],
+          },
+          {
+            id: "hide_cables",
+            type: "toggle",
+            label: "Скрыть кабели в стене?",
+            price: 1000,
+            defaultValue: false,
+          },
+        ],
+      },
+      {
+        id: "shelves",
+        name: "Навес полок",
+        description: "За количество креплений",
+        basePrice: 750,
+        fields: [
+          {
+            id: "count",
+            type: "stepper",
+            label: "Количество полок",
+            priceMultiplier: true,
+            defaultValue: 1,
+            min: 1,
+            max: 20,
+          },
+          {
+            id: "wall",
+            type: "select",
+            label: "Материал стены",
+            defaultValue: "drywall",
+            options: [
+              { label: "Гипсокартон", value: "drywall", price: 0 },
+              { label: "Кирпич / бетон", value: "concrete", price: 300 },
+            ],
+          },
+        ],
+      },
+      {
+        id: "drilling",
+        name: "Сверление отверстий",
+        description: "Цена за отверстие",
+        basePrice: 400,
+        fields: [
+          {
+            id: "count",
+            type: "stepper",
+            label: "Количество отверстий",
+            priceMultiplier: true,
+            defaultValue: 1,
+            min: 1,
+            max: 50,
+          },
+          {
+            id: "material",
+            type: "select",
+            label: "Материал",
+            defaultValue: "brick",
+            options: [
+              { label: "Кирпич / газоблок", value: "brick", price: 0 },
+              { label: "Бетон", value: "concrete", price: 100 },
+              { label: "Бетон (>ø12 мм)", value: "concrete_large", price: 300 },
+            ],
+          },
+        ],
+      },
+      {
+        id: "pullup-bar",
+        name: "Установка турника",
+        description: "Дверной или настенный",
+        basePrice: 1000,
+        fields: [
+          {
+            id: "type",
+            type: "select",
+            label: "Тип турника",
+            defaultValue: "door",
+            options: [
+              { label: "Дверной", value: "door", price: 0 },
+              { label: "Настенный", value: "wall", price: 500 },
+              { label: "С усилением (бетон)", value: "reinforced", price: 1500 },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "electrical",
+    name: "Электрика",
+    icon: "⚡",
+    services: [
+      {
+        id: "socket-install",
+        name: "Установка розетки / выключателя",
+        description: "Новая точка с подрозетником",
+        basePrice: 500,
+        fields: [
+          {
+            id: "count",
+            type: "stepper",
+            label: "Количество точек",
+            priceMultiplier: true,
+            defaultValue: 1,
+            min: 1,
+            max: 30,
+          },
+          {
+            id: "wall",
+            type: "select",
+            label: "Материал стены",
+            defaultValue: "drywall",
+            options: [
+              { label: "Гипсокартон", value: "drywall", price: 0 },
+              { label: "Кирпич", value: "brick", price: 300 },
+              { label: "Бетон", value: "concrete", price: 700 },
+            ],
+          },
+        ],
+      },
+      {
+        id: "socket-replace",
+        name: "Замена розетки / выключателя",
+        description: "С демонтажом старой",
+        basePrice: 750,
+        fields: [
+          {
+            id: "count",
+            type: "stepper",
+            label: "Количество точек",
+            priceMultiplier: true,
+            defaultValue: 1,
+            min: 1,
+            max: 30,
+          },
+        ],
+      },
+      {
+        id: "chandelier",
+        name: "Установка люстры",
+        description: "Монтаж и подключение",
+        basePrice: 1500,
+        fields: [
+          {
+            id: "count",
+            type: "stepper",
+            label: "Количество светильников",
+            priceMultiplier: true,
+            defaultValue: 1,
+            min: 1,
+            max: 10,
+          },
+          {
+            id: "ceiling",
+            type: "select",
+            label: "Тип потолка",
+            defaultValue: "standard",
+            options: [
+              { label: "Стандартный", value: "standard", price: 0 },
+              { label: "Натяжной", value: "stretch", price: 1000 },
+              { label: "Высокий (>3 м)", value: "high", price: 3000 },
+            ],
+          },
+        ],
+      },
+      {
+        id: "led-strip",
+        name: "Установка светодиодных лент",
+        description: "С профилем и блоком питания",
+        basePrice: 750,
+        fields: [
+          {
+            id: "meters",
+            type: "stepper",
+            label: "Длина ленты (метры)",
+            priceMultiplier: true,
+            defaultValue: 1,
+            min: 1,
+            max: 50,
+          },
+          {
+            id: "profile",
+            type: "toggle",
+            label: "Монтаж в профиль?",
+            price: 500,
+            defaultValue: false,
+          },
+          {
+            id: "power",
+            type: "toggle",
+            label: "Установка блока питания?",
+            price: 1000,
+            defaultValue: false,
+          },
+        ],
+      },
+      {
+        id: "breaker",
+        name: "Замена / установка автомата",
+        description: "В распределительном щитке",
+        basePrice: 1000,
+        fields: [
+          {
+            id: "count",
+            type: "stepper",
+            label: "Количество автоматов",
+            priceMultiplier: true,
+            defaultValue: 1,
+            min: 1,
+            max: 30,
+          },
+          {
+            id: "panel",
+            type: "toggle",
+            label: "Замена щитка целиком?",
+            price: 3500,
+            defaultValue: false,
+          },
+        ],
+      },
+      {
+        id: "emergency-electrician",
+        name: "Аварийный вызов электрика",
+        description: "Срочный выезд и устранение",
+        basePrice: 1000,
+        fields: [
+          {
+            id: "urgency",
+            type: "select",
+            label: "Срочность",
+            defaultValue: "normal",
+            options: [
+              { label: "В течение дня", value: "normal", price: 0 },
+              { label: "В течение 2 часов", value: "fast", price: 1000 },
+              { label: "Немедленно", value: "asap", price: 2000 },
+            ],
+          },
+        ],
+      },
+      {
+        id: "wiring",
+        name: "Замена проводки",
+        description: "За точку / погонный метр",
+        basePrice: 1000,
+        fields: [
+          {
+            id: "points",
+            type: "stepper",
+            label: "Количество точек",
+            priceMultiplier: true,
+            defaultValue: 1,
+            min: 1,
+            max: 50,
+          },
+          {
+            id: "grouting",
+            type: "toggle",
+            label: "Штробление стен?",
+            price: 2000,
+            defaultValue: false,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "appliances",
+    name: "Техника",
+    icon: "🔌",
+    services: [
+      {
+        id: "washing-machine",
+        name: "Подключение стиральной машины",
+        description: "Подвод воды и подключение слива",
+        basePrice: 1500,
+        fields: [
+          {
+            id: "pipes",
+            type: "toggle",
+            label: "Врезка / удлинение труб?",
+            price: 1500,
+            defaultValue: false,
+          },
+        ],
+      },
+      {
+        id: "dishwasher",
+        name: "Подключение посудомойки",
+        description: "Подвод воды и канализации",
+        basePrice: 1500,
+        fields: [
+          {
+            id: "pipes",
+            type: "toggle",
+            label: "Подвод новых труб?",
+            price: 1500,
+            defaultValue: false,
+          },
+        ],
+      },
+      {
+        id: "oven",
+        name: "Подключение духового шкафа",
+        description: "Выделенная линия 220/380В",
+        basePrice: 1500,
+        fields: [
+          {
+            id: "line",
+            type: "toggle",
+            label: "Прокладка выделенной линии?",
+            price: 2000,
+            defaultValue: false,
+          },
+        ],
+      },
+      {
+        id: "hood",
+        name: "Подключение вытяжки",
+        description: "Подключение к вентиляции",
+        basePrice: 1500,
+        fields: [
+          {
+            id: "duct",
+            type: "select",
+            label: "Тип подключения",
+            defaultValue: "existing",
+            options: [
+              { label: "В существующий воздуховод", value: "existing", price: 0 },
+              { label: "Прокладка нового воздуховода", value: "new", price: 2000 },
+            ],
+          },
+        ],
+      },
+      {
+        id: "appliance-basic",
+        name: "Подключение бытовой техники",
+        description: "Базовое подключение к сети",
+        basePrice: 750,
+        fields: [
+          {
+            id: "count",
+            type: "stepper",
+            label: "Количество единиц техники",
+            priceMultiplier: true,
+            defaultValue: 1,
+            min: 1,
+            max: 10,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "plumbing",
+    name: "Сантехника",
+    icon: "🔧",
+    services: [
+      {
+        id: "faucet",
+        name: "Установка / замена смесителя",
+        description: "С демонтажом старого",
+        basePrice: 1000,
+        fields: [
+          {
+            id: "location",
+            type: "select",
+            label: "Где устанавливаем?",
+            defaultValue: "kitchen",
+            options: [
+              { label: "Кухня", value: "kitchen", price: 0 },
+              { label: "Ванная / раковина", value: "bathroom", price: 300 },
+              { label: "Душевая", value: "shower", price: 1000 },
+            ],
+          },
+          {
+            id: "pipes",
+            type: "toggle",
+            label: "Замена гибкой подводки?",
+            price: 500,
+            defaultValue: false,
+          },
+        ],
+      },
+      {
+        id: "toilet",
+        name: "Установка унитаза",
+        description: "С демонтажом и подключением",
+        basePrice: 2000,
+        fields: [
+          {
+            id: "type",
+            type: "select",
+            label: "Тип унитаза",
+            defaultValue: "floor",
+            options: [
+              { label: "Напольный", value: "floor", price: 0 },
+              { label: "Подвесной (инсталляция)", value: "wall", price: 2000 },
+            ],
+          },
+          {
+            id: "remove_old",
+            type: "toggle",
+            label: "Демонтаж старого унитаза?",
+            price: 1000,
+            defaultValue: false,
+          },
+        ],
+      },
+      {
+        id: "sink",
+        name: "Установка раковины",
+        description: "Подвесная или в тумбу",
+        basePrice: 1500,
+        fields: [
+          {
+            id: "type",
+            type: "select",
+            label: "Тип раковины",
+            defaultValue: "wall",
+            options: [
+              { label: "Подвесная", value: "wall", price: 0 },
+              { label: "В тумбу", value: "cabinet", price: 500 },
+              { label: "Накладная / встроенная", value: "inset", price: 2000 },
+            ],
+          },
+        ],
+      },
+      {
+        id: "bathtub",
+        name: "Установка ванны",
+        description: "Акрил или чугун",
+        basePrice: 5000,
+        fields: [
+          {
+            id: "material",
+            type: "select",
+            label: "Материал ванны",
+            defaultValue: "acrylic",
+            options: [
+              { label: "Акриловая", value: "acrylic", price: 0 },
+              { label: "Чугунная", value: "cast_iron", price: 3000 },
+              { label: "Стальная", value: "steel", price: 2000 },
+            ],
+          },
+        ],
+      },
+      {
+        id: "heater",
+        name: "Установка водонагревателя",
+        description: "Накопительный или проточный",
+        basePrice: 2000,
+        fields: [
+          {
+            id: "type",
+            type: "select",
+            label: "Тип водонагревателя",
+            defaultValue: "tank",
+            options: [
+              { label: "Накопительный (до 80 л)", value: "tank", price: 0 },
+              { label: "Накопительный (>80 л)", value: "tank_large", price: 1000 },
+              { label: "Проточный", value: "flow", price: 2000 },
+            ],
+          },
+          {
+            id: "pipes",
+            type: "toggle",
+            label: "Подвод новых труб?",
+            price: 1500,
+            defaultValue: false,
+          },
+        ],
+      },
+      {
+        id: "leak",
+        name: "Устранение протечки",
+        description: "Срочный выезд",
+        basePrice: 750,
+        fields: [
+          {
+            id: "urgency",
+            type: "select",
+            label: "Срочность",
+            defaultValue: "normal",
+            options: [
+              { label: "Плановый выезд", value: "normal", price: 0 },
+              { label: "Срочно (2 часа)", value: "fast", price: 1000 },
+              { label: "Немедленно", value: "asap", price: 2000 },
+            ],
+          },
+        ],
+      },
+      {
+        id: "bath-seal",
+        name: "Герметизация ванны",
+        description: "Удаление старого и нанесение нового",
+        basePrice: 1000,
+        fields: [
+          {
+            id: "remove_old",
+            type: "toggle",
+            label: "Демонтаж старого герметика?",
+            price: 500,
+            defaultValue: true,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "additional",
+    name: "Другое",
+    icon: "🛠️",
+    services: [
+      {
+        id: "lock",
+        name: "Установка замка",
+        description: "Врезной или накладной",
+        basePrice: 1500,
+        fields: [
+          {
+            id: "type",
+            type: "select",
+            label: "Тип замка",
+            defaultValue: "mortise",
+            options: [
+              { label: "Врезной", value: "mortise", price: 0 },
+              { label: "Накладной", value: "surface", price: 500 },
+              { label: "Замена (с демонтажом)", value: "replace", price: 1000 },
+            ],
+          },
+        ],
+      },
+      {
+        id: "woodwork",
+        name: "Работа с деревом / полами / стенами",
+        description: "Объём по согласованию",
+        basePrice: 1500,
+        fields: [
+          {
+            id: "scope",
+            type: "select",
+            label: "Объём работ",
+            defaultValue: "small",
+            options: [
+              { label: "Мелкий (до 1 часа)", value: "small", price: 0 },
+              { label: "Средний (1–3 часа)", value: "medium", price: 2000 },
+              { label: "Большой (3+ часа)", value: "large", price: 5000 },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+];
+
+export const STEPS_ORDER = [
+  "category",
+  "service",
+  "parameters",
+  "datetime",
+  "contacts",
+  "checkout",
+  "success",
+] as const;
+
+export const TIME_SLOTS = [
+  "09:00",
+  "10:00",
+  "11:00",
+  "12:00",
+  "13:00",
+  "14:00",
+  "15:00",
+  "16:00",
+  "17:00",
+  "18:00",
+  "19:00",
+  "20:00",
+];
