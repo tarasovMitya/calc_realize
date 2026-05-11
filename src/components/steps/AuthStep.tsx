@@ -273,6 +273,12 @@ export function AuthStep() {
                 rows={3}
                 className="w-full px-5 py-4 rounded-2xl border-2 border-gray-100 focus:border-black text-lg outline-none transition-colors resize-none"
               />
+              <button
+                type="submit"
+                className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-lg hover:bg-gray-800 active:scale-95 transition-all"
+              >
+                Далее
+              </button>
             </form>
           </motion.div>
         )}
