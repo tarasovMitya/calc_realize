@@ -12,5 +12,6 @@ FROM node:20-alpine
 RUN npm install -g serve
 WORKDIR /app
 COPY --from=builder /app/dist ./dist
+COPY generate-env.js ./generate-env.js
 EXPOSE 8080
-CMD ["sh", "-c", "echo \"window.__env__ = { VITE_SUPABASE_URL: '${VITE_SUPABASE_URL}', VITE_SUPABASE_ANON_KEY: '${VITE_SUPABASE_ANON_KEY}' };\" > /app/dist/env-config.js && serve dist -l ${PORT:-8080} -s"]
+CMD ["sh", "-c", "node generate-env.js && serve dist -l ${PORT:-8080} -s"]
