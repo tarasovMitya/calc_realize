@@ -3,6 +3,9 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
+# bust docker layer cache on every build
+ARG BUILD_DATE
+RUN echo "$BUILD_DATE"
 RUN npm run build
 
 FROM node:20-alpine
