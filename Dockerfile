@@ -1,11 +1,5 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
-
-ARG VITE_SUPABASE_URL
-ARG VITE_SUPABASE_ANON_KEY
-ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
-ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
-
 COPY package*.json ./
 RUN npm ci
 COPY . .
@@ -16,4 +10,4 @@ RUN npm install -g serve
 WORKDIR /app
 COPY --from=builder /app/dist ./dist
 EXPOSE 8080
-CMD ["sh", "-c", "serve dist -l ${PORT:-8080} -s"]
+CMD ["sh", "-c", "echo \"window.__env__ = { VITE_SUPABASE_URL: '${VITE_SUPABASE_URL}', VITE_SUPABASE_ANON_KEY: '${VITE_SUPABASE_ANON_KEY}' };\" > /app/dist/env-config.js && serve dist -l ${PORT:-8080} -s"]
