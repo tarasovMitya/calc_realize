@@ -186,7 +186,7 @@ export function AuthPage() {
                   onClick={() => navigate("/calculator")}
                   className="text-black font-medium hover:underline"
                 >
-                  Оформить заказ
+                  Зарегистрироваться
                 </button>
               </p>
             </motion.div>
