@@ -322,20 +322,32 @@ export function dbSubscribeSharedOrders(onNew: (order: SharedOrder) => void): ()
   return () => { supabase.removeChannel(channel); };
 }
 
-/** Subscribe to UPDATE events for a specific shared order (e.g. performer assigned). */
+/** Subscribe to all UPDATE events on shared_orders; filters client-side by orderId. */
 export function dbSubscribeSharedOrderUpdates(
   orderId: string,
   onUpdate: (order: SharedOrder) => void
 ): () => void {
   const channel = supabase
-    .channel(`shared_order_update_${orderId}`)
+    .channel("shared_orders_all_updates")
     .on(
       "postgres_changes",
-      { event: "UPDATE", schema: "public", table: "shared_orders", filter: `id=eq.${orderId}` },
-      (payload) => onUpdate(rowToSharedOrder(payload.new as Record<string, unknown>))
+      { event: "UPDATE", schema: "public", table: "shared_orders" },
+      (payload) => {
+        const updated = rowToSharedOrder(payload.new as Record<string, unknown>);
+        if (updated.id === orderId) onUpdate(updated);
+      }
     )
     .subscribe();
   return () => { supabase.removeChannel(channel); };
+}
+
+export async function dbGetSharedOrder(orderId: string): Promise<SharedOrder | null> {
+  const { data } = await supabase
+    .from("shared_orders")
+    .select("*")
+    .eq("id", orderId)
+    .single();
+  return data ? rowToSharedOrder(data as Record<string, unknown>) : null;
 }
 
 export async function dbCancelSharedOrder(orderId: string): Promise<void> {
