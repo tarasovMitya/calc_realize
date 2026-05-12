@@ -63,9 +63,14 @@ export function AuthPage() {
       const isRateLimit = err.message.toLowerCase().includes("rate limit") ||
         err.message.toLowerCase().includes("security purposes") ||
         err.status === 429;
+      const isEmailError = err.message.toLowerCase().includes("sending confirmation") ||
+        err.message.toLowerCase().includes("sending email") ||
+        err.message.toLowerCase().includes("email");
       setError(isRateLimit
         ? "Слишком много попыток. Подождите минуту и попробуйте снова."
-        : err.message);
+        : isEmailError
+          ? "Не удалось отправить письмо. Проверьте адрес или попробуйте позже."
+          : err.message);
     } else {
       setEmail(e);
       setSubStep("otp");
