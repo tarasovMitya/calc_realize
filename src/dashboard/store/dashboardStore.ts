@@ -15,16 +15,7 @@ import {
   mockPayments,
   mockNotifications,
 } from "../data/mockData";
-
-const MOCK_PERFORMER: ActivePerformer = {
-  name: "Александр",
-  avatar: "АЛ",
-  rating: 4.9,
-  jobsCompleted: 248,
-  phone: "+7 999 123-45-67",
-  telegram: "@alex_master",
-  eta: "Приедет через 45 минут",
-};
+import { useSharedOrdersStore } from "../../store/sharedOrdersStore";
 
 interface DashboardState {
   orders: Order[];
@@ -39,6 +30,8 @@ interface DashboardState {
   orderFlowStatus: OrderFlowStatus;
   pendingOrder: PendingOrder | null;
   activePerformer: ActivePerformer | null;
+  /** ID of the active order in sharedOrdersStore (set after payment). */
+  activeSharedOrderId: string | null;
 
   // Actions
   markNotificationRead: (id: string) => void;
@@ -55,7 +48,9 @@ interface DashboardState {
   setPendingOrder: (order: PendingOrder) => void;
   startPayment: () => void;
   completePayment: () => void;
-  assignPerformer: () => void;
+  setOrderFlowStatus: (status: OrderFlowStatus) => void;
+  /** Called when sharedOrdersStore shows performer_assigned — syncs local order list. */
+  onPerformerAssigned: () => void;
   resetOrderFlow: () => void;
 }
 
@@ -67,11 +62,11 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   profile: { id: "", name: "", phone: "", email: "", address: "", notifyEmail: true, notifySms: true, notifyPush: false },
   isLoading: false,
 
-  // Order flow state machine
   paymentStatus: "idle" as PaymentStatus,
   orderFlowStatus: "idle" as OrderFlowStatus,
   pendingOrder: null,
   activePerformer: null,
+  activeSharedOrderId: null,
 
   markNotificationRead: (id) =>
     set((s) => ({
@@ -123,15 +118,29 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   startPayment: () => set({ paymentStatus: "processing" }),
 
   completePayment: () => {
-    const pendingOrder = get().pendingOrder;
+    const { pendingOrder, profile } = get();
     if (!pendingOrder) return;
 
     const now = new Date();
     const timeStr = now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
-    const newOrderId = `ord-new-${Date.now()}`;
+
+    const sharedId = useSharedOrdersStore.getState().createOrder({
+      status: "searching_performer",
+      scheduledDate: pendingOrder.scheduledDate,
+      scheduledTime: pendingOrder.scheduledTime,
+      categoryName: pendingOrder.categoryName,
+      serviceName: pendingOrder.serviceName,
+      address: pendingOrder.address,
+      priceTotal: pendingOrder.priceTotal,
+      priceBreakdown: pendingOrder.priceBreakdown,
+      duration: pendingOrder.duration,
+      clientEmail: profile.email,
+      clientName: profile.name,
+      clientPhone: profile.phone,
+    });
 
     const newOrder: Order = {
-      id: newOrderId,
+      id: sharedId,
       createdAt: now.toISOString(),
       scheduledDate: pendingOrder.scheduledDate,
       scheduledTime: pendingOrder.scheduledTime,
@@ -157,50 +166,52 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     set((s) => ({
       paymentStatus: "paid",
       orderFlowStatus: "searching",
+      activeSharedOrderId: sharedId,
       orders: [newOrder, ...s.orders],
     }));
-
-    const delay = 5000 + Math.random() * 5000;
-    setTimeout(() => {
-      const assignedTime = new Date().toLocaleTimeString("ru-RU", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-      set((s) => ({
-        orderFlowStatus: "assigned",
-        activePerformer: MOCK_PERFORMER,
-        orders: s.orders.map((o) =>
-          o.id === newOrderId
-            ? {
-                ...o,
-                status: "assigned" as const,
-                performer: {
-                  id: "alex-1",
-                  name: MOCK_PERFORMER.name,
-                  avatar: MOCK_PERFORMER.avatar,
-                  rating: MOCK_PERFORMER.rating,
-                  reviewCount: 248,
-                  phone: MOCK_PERFORMER.phone,
-                  jobsCompleted: MOCK_PERFORMER.jobsCompleted,
-                  telegram: MOCK_PERFORMER.telegram,
-                  eta: MOCK_PERFORMER.eta,
-                },
-                eta: `${new Date(o.scheduledDate).toLocaleDateString("ru-RU", { day: "numeric", month: "long" })} в ${o.scheduledTime}`,
-                timeline: [
-                  { id: "t1", label: "Заказ создан", time: o.timeline[0].time, completed: true },
-                  { id: "t2", label: "Оплата подтверждена", time: o.timeline[1].time, completed: true },
-                  { id: "t3", label: "Поиск исполнителя", time: assignedTime, completed: true },
-                  { id: "t4", label: "Исполнитель назначен", time: assignedTime, completed: true },
-                ],
-              }
-            : o
-        ),
-      }));
-    }, delay);
   },
 
-  assignPerformer: () =>
-    set({ orderFlowStatus: "assigned", activePerformer: MOCK_PERFORMER }),
+  setOrderFlowStatus: (status) => set({ orderFlowStatus: status }),
+
+  onPerformerAssigned: () => {
+    const { activeSharedOrderId } = get();
+    if (!activeSharedOrderId) return;
+    const sharedOrder = useSharedOrdersStore.getState().orders.find(
+      (o) => o.id === activeSharedOrderId
+    );
+    if (!sharedOrder || !sharedOrder.performerName) return;
+
+    const assignedTime = new Date().toLocaleTimeString("ru-RU", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    set((s) => ({
+      orderFlowStatus: "assigned",
+      orders: s.orders.map((o) =>
+        o.id === activeSharedOrderId
+          ? {
+              ...o,
+              status: "assigned" as const,
+              performer: {
+                id: sharedOrder.performerId ?? "p-1",
+                name: sharedOrder.performerName!,
+                avatar: sharedOrder.performerAvatar ?? sharedOrder.performerName!.slice(0, 2).toUpperCase(),
+                rating: sharedOrder.performerRating ?? 0,
+                reviewCount: sharedOrder.performerJobsCompleted ?? 0,
+                phone: sharedOrder.performerPhone ?? "",
+                jobsCompleted: sharedOrder.performerJobsCompleted ?? 0,
+                telegram: sharedOrder.performerTelegram ?? undefined,
+              },
+              eta: `${new Date(o.scheduledDate).toLocaleDateString("ru-RU", { day: "numeric", month: "long" })} в ${o.scheduledTime}`,
+              timeline: o.timeline.map((t, i) =>
+                i >= 2 ? { ...t, time: assignedTime, completed: true } : t
+              ),
+            }
+          : o
+      ),
+    }));
+  },
 
   resetOrderFlow: () =>
     set({
@@ -208,5 +219,6 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
       orderFlowStatus: "idle",
       pendingOrder: null,
       activePerformer: null,
+      activeSharedOrderId: null,
     }),
 }));

@@ -8,9 +8,11 @@ interface AvailableOrderCardProps {
   order: PerformerOrder;
   onAccept: () => void;
   onReject: () => void;
+  isAccepting?: boolean;
+  isUnavailable?: boolean;
 }
 
-export function AvailableOrderCard({ order, onAccept, onReject }: AvailableOrderCardProps) {
+export function AvailableOrderCard({ order, onAccept, onReject, isAccepting, isUnavailable }: AvailableOrderCardProps) {
   const date = new Date(order.scheduledDate).toLocaleDateString("ru-RU", {
     day: "numeric",
     month: "long",
@@ -77,18 +79,30 @@ export function AvailableOrderCard({ order, onAccept, onReject }: AvailableOrder
       <div className="px-5 pb-5 flex gap-3">
         <button
           onClick={onReject}
-          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-gray-200 text-sm font-semibold text-gray-600 hover:border-gray-300 transition-all active:scale-95"
+          disabled={isAccepting || isUnavailable}
+          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-gray-200 text-sm font-semibold text-gray-600 hover:border-gray-300 transition-all active:scale-95 disabled:opacity-40"
         >
           <X size={16} />
           Отклонить
         </button>
-        <button
-          onClick={onAccept}
-          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-black text-white text-sm font-semibold hover:bg-gray-800 transition-all active:scale-95"
-        >
-          <Check size={16} />
-          Принять
-        </button>
+        {isUnavailable ? (
+          <div className="flex-1 flex items-center justify-center py-3 rounded-xl bg-gray-100 text-sm font-semibold text-gray-400">
+            Уже занят
+          </div>
+        ) : (
+          <button
+            onClick={onAccept}
+            disabled={isAccepting}
+            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-black text-white text-sm font-semibold hover:bg-gray-800 transition-all active:scale-95 disabled:opacity-60"
+          >
+            {isAccepting ? (
+              <span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+            ) : (
+              <Check size={16} />
+            )}
+            {isAccepting ? "Принимаем..." : "Принять"}
+          </button>
+        )}
       </div>
     </motion.div>
   );

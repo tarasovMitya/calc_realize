@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Plus, RotateCcw, ClipboardList, LogOut } from "lucide-react";
 import { useDashboardStore } from "../store/dashboardStore";
+import { useSharedOrdersStore } from "../../store/sharedOrdersStore";
 import { useCalculatorStore } from "../../store/calculatorStore";
 import { useAuthStore } from "../../store/authStore";
 import { ActiveOrderCard } from "../components/cards/ActiveOrderCard";
@@ -12,12 +13,23 @@ import { SectionHeader } from "../components/ui/SectionHeader";
 import { DashboardSkeleton } from "../components/ui/SkeletonLoader";
 import { EmptyState } from "../components/ui/EmptyState";
 import { PaymentModal } from "../components/PaymentModal";
+import { SearchingPerformerView } from "../components/SearchingPerformerView";
+import { PerformerAssignedView } from "../components/PerformerAssignedView";
 
 export function DashboardPage() {
   const navigate = useNavigate();
-  const { orders, isLoading, simulateLoading, addresses } = useDashboardStore();
+  const {
+    orders, isLoading, simulateLoading, addresses,
+    orderFlowStatus, onPerformerAssigned, activeSharedOrderId,
+  } = useDashboardStore();
   const { setSkipAuth, setContacts } = useCalculatorStore();
   const { user, signOut } = useAuthStore();
+
+  const sharedOrder = useSharedOrdersStore(
+    (s) => activeSharedOrderId
+      ? s.orders.find((o) => o.id === activeSharedOrderId) ?? null
+      : null
+  );
 
   const displayName = user?.user_metadata?.full_name as string | undefined
     ?? user?.email?.split("@")[0]
@@ -26,6 +38,12 @@ export function DashboardPage() {
   useEffect(() => {
     simulateLoading(600);
   }, []);
+
+  useEffect(() => {
+    if (orderFlowStatus === "searching" && sharedOrder?.status === "performer_assigned") {
+      onPerformerAssigned();
+    }
+  }, [sharedOrder?.status, orderFlowStatus]);
 
   const handleNewOrder = () => {
     const defaultAddress = addresses.find((a) => a.isDefault);
@@ -57,6 +75,9 @@ export function DashboardPage() {
     hour < 12 ? "Доброе утро" : hour < 18 ? "Добрый день" : "Добрый вечер";
 
   if (isLoading) return <DashboardSkeleton />;
+
+  if (orderFlowStatus === "searching") return <SearchingPerformerView />;
+  if (orderFlowStatus === "assigned") return <PerformerAssignedView />;
 
   return (
     <>

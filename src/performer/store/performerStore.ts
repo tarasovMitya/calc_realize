@@ -8,6 +8,8 @@ import type {
   BankCard,
   WithdrawRecord,
 } from "../types";
+import { useSharedOrdersStore } from "../../store/sharedOrdersStore";
+import type { AcceptResult } from "../../store/sharedOrdersStore";
 import {
   mockPerformerProfile,
   mockAvailableOrders,
@@ -35,7 +37,7 @@ interface PerformerState {
 
   // Actions
   toggleOnline: () => void;
-  acceptOrder: (orderId: string) => void;
+  acceptOrder: (orderId: string) => AcceptResult;
   rejectOrder: (orderId: string) => void;
   updateOrderStatus: (orderId: string, status: PerformerOrderStatus) => void;
   markNotificationRead: (id: string) => void;
@@ -63,7 +65,7 @@ function enrichWithDistance(
   });
 }
 
-export const usePerformerStore = create<PerformerState>((set) => ({
+export const usePerformerStore = create<PerformerState>((set, get) => ({
   profile: mockPerformerProfile,
   isOnline: true,
   balance: 13500,
@@ -80,6 +82,50 @@ export const usePerformerStore = create<PerformerState>((set) => ({
 
   acceptOrder: (orderId) => {
     const now = new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+
+    // Try shared store first (real client orders)
+    const sharedEntry = useSharedOrdersStore.getState().orders.find((o) => o.id === orderId);
+    if (sharedEntry) {
+      const { profile } = get();
+      const result = useSharedOrdersStore.getState().acceptOrder(orderId, {
+        id: profile.id,
+        name: profile.name,
+        phone: profile.phone,
+        telegram: profile.telegram,
+        rating: profile.rating,
+        avatar: profile.avatar,
+        jobsCompleted: profile.completedOrders,
+      });
+      if (result === "success") {
+        const accepted: PerformerOrder = {
+          id: sharedEntry.id,
+          createdAt: sharedEntry.createdAt,
+          scheduledDate: sharedEntry.scheduledDate,
+          scheduledTime: sharedEntry.scheduledTime,
+          status: "accepted",
+          categoryName: sharedEntry.categoryName,
+          serviceName: sharedEntry.serviceName,
+          address: sharedEntry.address,
+          priceTotal: sharedEntry.priceTotal,
+          priceBreakdown: sharedEntry.priceBreakdown,
+          duration: sharedEntry.duration,
+          comment: sharedEntry.comment,
+          client: { name: sharedEntry.clientName, phone: sharedEntry.clientPhone },
+          timeline: [
+            { id: "t1", label: "Заказ принят", time: now, completed: true },
+            { id: "t2", label: "Еду к клиенту", time: "", completed: false },
+            { id: "t3", label: "Работа выполняется", time: "", completed: false },
+            { id: "t4", label: "Завершено", time: "", completed: false },
+          ],
+        };
+        set((s) => ({
+          activeOrders: [accepted, ...s.activeOrders],
+        }));
+      }
+      return result;
+    }
+
+    // Fall back to mock order behavior
     set((s) => {
       const order = s.availableOrders.find((o) => o.id === orderId);
       if (!order) return s;
@@ -98,6 +144,7 @@ export const usePerformerStore = create<PerformerState>((set) => ({
         activeOrders: [accepted, ...s.activeOrders],
       };
     });
+    return "success";
   },
 
   rejectOrder: (orderId) =>

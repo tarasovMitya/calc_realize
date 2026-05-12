@@ -2,8 +2,10 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ClipboardList } from "lucide-react";
 import { usePerformerStore } from "../store/performerStore";
+import { useSharedOrdersStore } from "../../store/sharedOrdersStore";
 import { AvailableOrderCard } from "../components/cards/AvailableOrderCard";
 import type { PerformerOrder } from "../types";
+import type { SharedOrder } from "../../store/sharedOrdersStore";
 
 type SortKey = "nearest" | "price" | "newest";
 
@@ -12,6 +14,27 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: "price", label: "Дороже" },
   { key: "newest", label: "Новые" },
 ];
+
+function sharedToPerformerOrder(o: SharedOrder): PerformerOrder {
+  return {
+    id: o.id,
+    createdAt: o.createdAt,
+    scheduledDate: o.scheduledDate,
+    scheduledTime: o.scheduledTime,
+    status: "available",
+    categoryName: o.categoryName,
+    serviceName: o.serviceName,
+    address: o.address,
+    lat: o.lat,
+    lng: o.lng,
+    priceTotal: o.priceTotal,
+    priceBreakdown: o.priceBreakdown,
+    duration: o.duration,
+    comment: o.comment,
+    client: { name: o.clientName, phone: o.clientPhone },
+    timeline: [],
+  };
+}
 
 function sortOrders(orders: PerformerOrder[], by: SortKey): PerformerOrder[] {
   return [...orders].sort((a, b) => {
@@ -27,9 +50,27 @@ function sortOrders(orders: PerformerOrder[], by: SortKey): PerformerOrder[] {
 
 export function AvailableOrdersPage() {
   const { availableOrders, acceptOrder, rejectOrder, isOnline } = usePerformerStore();
+  const realOrders = useSharedOrdersStore(
+    (s) => s.orders.filter((o) => o.status === "searching_performer").map(sharedToPerformerOrder)
+  );
   const [sortBy, setSortBy] = useState<SortKey>("nearest");
+  const [acceptingId, setAcceptingId] = useState<string | null>(null);
+  const [unavailableIds, setUnavailableIds] = useState<Set<string>>(new Set());
+  const [toast, setToast] = useState<string | null>(null);
 
-  const sorted = sortOrders(availableOrders, sortBy);
+  const allOrders = [...realOrders, ...availableOrders];
+  const sorted = sortOrders(allOrders, sortBy);
+
+  const handleAccept = (orderId: string) => {
+    setAcceptingId(orderId);
+    const result = acceptOrder(orderId);
+    setAcceptingId(null);
+    if (result === "already_taken") {
+      setUnavailableIds((prev) => new Set(prev).add(orderId));
+      setToast("Заказ уже занят другим исполнителем");
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
 
   return (
     <div className="max-w-2xl mx-auto px-4 pt-8 pb-10">
@@ -37,15 +78,29 @@ export function AvailableOrdersPage() {
         <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Новые заказы</h1>
         <p className="text-sm text-gray-400 mt-1">
           {isOnline
-            ? availableOrders.length > 0
-              ? `${availableOrders.length} заказа ждут вас`
+            ? allOrders.length > 0
+              ? `${allOrders.length} ${allOrders.length === 1 ? "заказ ждёт" : "заказа ждут"} вас`
               : "Новых заказов пока нет"
             : "Вы офлайн — заказы не поступают"}
         </p>
       </motion.div>
 
+      {/* Toast */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-100 text-sm font-medium text-red-600"
+          >
+            {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Sort tabs */}
-      {availableOrders.length > 0 && (
+      {allOrders.length > 0 && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -87,8 +142,10 @@ export function AvailableOrdersPage() {
               <AvailableOrderCard
                 key={order.id}
                 order={order}
-                onAccept={() => acceptOrder(order.id)}
+                onAccept={() => handleAccept(order.id)}
                 onReject={() => rejectOrder(order.id)}
+                isAccepting={acceptingId === order.id}
+                isUnavailable={unavailableIds.has(order.id)}
               />
             ))}
           </div>
