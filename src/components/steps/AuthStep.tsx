@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
-import { MapPin, Plus } from "lucide-react";
+import { MapPin, Plus, Navigation, Loader2 } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { useCalculatorStore } from "../../store/calculatorStore";
 import { useAuthStore } from "../../store/authStore";
@@ -66,6 +66,36 @@ export function AuthStep() {
   const [newAddressValue, setNewAddressValue] = useState("");
   const [saveNewAddress, setSaveNewAddress] = useState(false);
   const [addressError, setAddressError] = useState("");
+  const [locating, setLocating] = useState(false);
+
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) return;
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=ru`,
+            { headers: { "Accept-Language": "ru" } }
+          );
+          const data = await res.json();
+          const addr = data.address ?? {};
+          const city = addr.city || addr.town || addr.village || "";
+          const street = addr.road || "";
+          const house = addr.house_number || "";
+          const streetPart = house ? `${street}, ${house}` : street;
+          setNewAddressValue(city ? `${streetPart}, ${city}` : streetPart);
+          setAddressError("");
+        } catch {
+          // leave field as-is if reverse geocode fails
+        }
+        setLocating(false);
+      },
+      () => setLocating(false),
+      { timeout: 8000 }
+    );
+  };
 
   useEffect(() => {
     if (isAuthenticated && user?.email) {
@@ -434,6 +464,19 @@ export function AuthStep() {
 
                 {selectedAddressId === "new" && (
                   <div className="flex flex-col gap-2 pl-1">
+                    <button
+                      type="button"
+                      onClick={handleGetLocation}
+                      disabled={locating}
+                      className="flex items-center gap-2 w-full px-4 py-3 rounded-2xl border-2 border-dashed border-gray-200 text-sm font-medium text-gray-500 hover:border-gray-400 hover:text-gray-700 disabled:opacity-50 transition-all"
+                    >
+                      {locating ? (
+                        <Loader2 size={15} className="text-gray-400 animate-spin" />
+                      ) : (
+                        <Navigation size={15} className="text-gray-400" />
+                      )}
+                      {locating ? "Определяем местоположение..." : "Использовать текущую геопозицию"}
+                    </button>
                     <input
                       value={newAddressValue}
                       onChange={(e) => { setNewAddressValue(e.target.value); setAddressError(""); }}
