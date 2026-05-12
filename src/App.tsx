@@ -25,6 +25,8 @@ import { SchedulePage } from "./performer/pages/SchedulePage";
 import { PerformerProfilePage } from "./performer/pages/ProfilePage";
 import { PerformerNotificationsPage } from "./performer/pages/NotificationsPage";
 import { PerformerOnboarding } from "./performer/onboarding/PerformerOnboarding";
+import { PerformerAuthPage } from "./performer/pages/PerformerAuthPage";
+import { PerformerGuard } from "./performer/components/PerformerGuard";
 
 function App() {
   const { initialize } = useAuthStore();
@@ -64,19 +66,26 @@ function App() {
           <Route path="notifications" element={<NotificationsPage />} />
         </Route>
 
-        {/* Performer onboarding */}
-        <Route path="/performer/onboarding" element={<PerformerOnboarding />} />
+        {/* Performer auth */}
+        <Route path="/performer/auth" element={<PerformerAuthPage />} />
 
-        {/* Performer dashboard */}
-        <Route path="/performer" element={<PerformerLayout />}>
-          <Route index element={<PerformerDashboard />} />
-          <Route path="available" element={<AvailableOrdersPage />} />
-          <Route path="active" element={<PerformerActiveOrdersPage />} />
-          <Route path="orders/:id" element={<PerformerOrderDetailsPage />} />
-          <Route path="earnings" element={<EarningsPage />} />
-          <Route path="schedule" element={<SchedulePage />} />
-          <Route path="profile" element={<PerformerProfilePage />} />
-          <Route path="notifications" element={<PerformerNotificationsPage />} />
+        {/* Performer onboarding — requires auth + performer role */}
+        <Route element={<PerformerGuard requireOnboarded={false} />}>
+          <Route path="/performer/onboarding" element={<PerformerOnboarding />} />
+        </Route>
+
+        {/* Performer dashboard — requires auth + performer role + onboarded */}
+        <Route element={<PerformerGuard />}>
+          <Route path="/performer" element={<PerformerLayout />}>
+            <Route index element={<PerformerDashboard />} />
+            <Route path="available" element={<AvailableOrdersPage />} />
+            <Route path="active" element={<PerformerActiveOrdersPage />} />
+            <Route path="orders/:id" element={<PerformerOrderDetailsPage />} />
+            <Route path="earnings" element={<EarningsPage />} />
+            <Route path="schedule" element={<SchedulePage />} />
+            <Route path="profile" element={<PerformerProfilePage />} />
+            <Route path="notifications" element={<PerformerNotificationsPage />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

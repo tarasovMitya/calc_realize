@@ -2,6 +2,7 @@ import { AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useOnboardingStore } from "./store/onboardingStore";
 import { usePerformerStore } from "../store/performerStore";
+import { supabase } from "../../lib/supabase";
 import { OnboardingLayout } from "./components/OnboardingLayout";
 import { Step1Basic } from "./steps/Step1Basic";
 import { Step2Skills } from "./steps/Step2Skills";
@@ -18,8 +19,7 @@ export function PerformerOnboarding() {
     useOnboardingStore();
   const { updateProfile } = usePerformerStore();
 
-  const handleComplete = () => {
-    // Populate performer store with collected onboarding data
+  const handleComplete = async () => {
     updateProfile({
       name: name || "Новый исполнитель",
       phone,
@@ -28,6 +28,7 @@ export function PerformerOnboarding() {
       workRadius: radius,
       specializations: skills,
     });
+    await supabase.auth.updateUser({ data: { performer_onboarded: true } });
     complete();
     reset();
     navigate("/performer");

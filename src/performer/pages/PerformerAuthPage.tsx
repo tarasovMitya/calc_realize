@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
-import { supabase } from "../lib/supabase";
-import { useAuthStore } from "../store/authStore";
+import { Wrench } from "lucide-react";
+import { supabase } from "../../lib/supabase";
+import { useAuthStore } from "../../store/authStore";
 
 type SubStep = "email" | "otp";
 
@@ -13,9 +14,9 @@ const slide = {
   exit: { x: -30, opacity: 0 },
 };
 
-export function AuthPage() {
+export function PerformerAuthPage() {
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading } = useAuthStore();
+  const { user, isAuthenticated, isLoading } = useAuthStore();
 
   const [subStep, setSubStep] = useState<SubStep>("email");
   const [email, setEmail] = useState("");
@@ -30,6 +31,18 @@ export function AuthPage() {
     return () => { if (cooldownRef.current) clearInterval(cooldownRef.current); };
   }, []);
 
+  // If already authenticated as performer, redirect
+  useEffect(() => {
+    if (isLoading) return;
+    if (isAuthenticated && user?.user_metadata?.performer_role === true) {
+      if (user.user_metadata.performer_onboarded) {
+        navigate("/performer", { replace: true });
+      } else {
+        navigate("/performer/onboarding", { replace: true });
+      }
+    }
+  }, [isAuthenticated, isLoading, user]);
+
   const startCooldown = (seconds = 60) => {
     setCooldown(seconds);
     cooldownRef.current = setInterval(() => {
@@ -42,25 +55,16 @@ export function AuthPage() {
 
   const emailForm = useForm<{ email: string }>();
 
-  // If already authenticated, go straight to dashboard
-  useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      navigate("/dashboard", { replace: true });
-    }
-  }, [isAuthenticated, isLoading, navigate]);
-
   const sendOtp = async (e: string) => {
     setLoading(true);
     setError("");
     const { error: err } = await supabase.auth.signInWithOtp({
       email: e,
-      options: {
-        shouldCreateUser: true,
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
+      options: { shouldCreateUser: true },
     });
     if (err) {
-      const isRateLimit = err.message.toLowerCase().includes("rate limit") ||
+      const isRateLimit =
+        err.message.toLowerCase().includes("rate limit") ||
         err.message.toLowerCase().includes("security purposes") ||
         err.status === 429;
       setError(isRateLimit
@@ -89,8 +93,16 @@ export function AuthPage() {
     if (err) {
       setError("Неверный код. Попробуй ещё раз");
       setLoading(false);
+      return;
     }
-    // On success, onAuthStateChange fires → authStore updates → useEffect redirects
+    // Mark as performer and check onboarding status
+    await supabase.auth.updateUser({ data: { performer_role: true } });
+    const { data: { user: freshUser } } = await supabase.auth.getUser();
+    if (freshUser?.user_metadata?.performer_onboarded) {
+      navigate("/performer", { replace: true });
+    } else {
+      navigate("/performer/onboarding", { replace: true });
+    }
   };
 
   const handleOtpChange = (i: number, val: string) => {
@@ -126,14 +138,12 @@ export function AuthPage() {
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        {/* Logo / Brand */}
+        {/* Logo */}
         <div className="text-center mb-10">
           <div className="w-12 h-12 rounded-2xl bg-black flex items-center justify-center mx-auto mb-4">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-              <polyline points="9 22 9 12 15 12 15 22" />
-            </svg>
+            <Wrench size={22} stroke="white" strokeWidth={2.5} />
           </div>
+          <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">Портал исполнителей</p>
         </div>
 
         <AnimatePresence mode="wait">
@@ -181,22 +191,10 @@ export function AuthPage() {
               </form>
 
               <p className="text-center text-sm text-gray-400">
-                Нет аккаунта?{" "}
-                <button
-                  onClick={() => navigate("/calculator")}
-                  className="text-black font-medium hover:underline"
-                >
-                  Зарегистрироваться
-                </button>
-              </p>
-              <p className="text-center text-sm text-gray-400">
-                Вы мастер?{" "}
-                <button
-                  onClick={() => navigate("/performer/auth")}
-                  className="text-black font-medium hover:underline"
-                >
-                  Войти как исполнитель
-                </button>
+                Вы клиент?{" "}
+                <Link to="/auth" className="text-black font-medium hover:underline">
+                  Войти как клиент
+                </Link>
               </p>
             </motion.div>
           )}
@@ -247,21 +245,21 @@ export function AuthPage() {
               </button>
 
               <div className="flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => { setSubStep("email"); setOtp(["","","","","",""]); setError(""); }}
-                className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                Изменить email
-              </button>
-              <button
-                type="button"
-                disabled={cooldown > 0}
-                onClick={() => sendOtp(email)}
-                className="text-sm text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-40"
-              >
-                {cooldown > 0 ? `Отправить снова (${cooldown}с)` : "Отправить снова"}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => { setSubStep("email"); setOtp(["","","","","",""]); setError(""); }}
+                  className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  Изменить email
+                </button>
+                <button
+                  type="button"
+                  disabled={cooldown > 0}
+                  onClick={() => sendOtp(email)}
+                  className="text-sm text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-40"
+                >
+                  {cooldown > 0 ? `Отправить снова (${cooldown}с)` : "Отправить снова"}
+                </button>
               </div>
             </motion.div>
           )}
