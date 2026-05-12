@@ -1,0 +1,223 @@
+import { supabase } from "./supabase";
+import type { UserProfile, Address, Order } from "../dashboard/types";
+import type { PerformerProfile } from "../performer/types";
+
+// ─── Client Profile ────────────────────────────────────────────────────────────
+
+export async function dbLoadProfile(userId: string): Promise<UserProfile | null> {
+  const { data } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("user_id", userId)
+    .single();
+  if (!data) return null;
+  return {
+    id: data.id,
+    name: data.name,
+    email: data.email,
+    phone: data.phone,
+    address: data.address,
+    avatar: data.avatar || undefined,
+    notifyEmail: data.notify_email,
+    notifySms: data.notify_sms,
+    notifyPush: data.notify_push,
+  };
+}
+
+export async function dbSaveProfile(userId: string, profile: Partial<UserProfile>): Promise<void> {
+  const row: Record<string, unknown> = { user_id: userId, updated_at: new Date().toISOString() };
+  if (profile.name !== undefined) row.name = profile.name;
+  if (profile.email !== undefined) row.email = profile.email;
+  if (profile.phone !== undefined) row.phone = profile.phone;
+  if (profile.address !== undefined) row.address = profile.address;
+  if (profile.avatar !== undefined) row.avatar = profile.avatar;
+  if (profile.notifyEmail !== undefined) row.notify_email = profile.notifyEmail;
+  if (profile.notifySms !== undefined) row.notify_sms = profile.notifySms;
+  if (profile.notifyPush !== undefined) row.notify_push = profile.notifyPush;
+  await supabase.from("profiles").upsert(row, { onConflict: "user_id" });
+}
+
+// ─── Addresses ────────────────────────────────────────────────────────────────
+
+export async function dbLoadAddresses(userId: string): Promise<Address[]> {
+  const { data } = await supabase
+    .from("addresses")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at");
+  if (!data) return [];
+  return data.map((r) => ({
+    id: r.id,
+    label: r.label,
+    street: r.street,
+    city: r.city,
+    isDefault: r.is_default,
+  }));
+}
+
+export async function dbAddAddress(userId: string, addr: Omit<Address, "id">, id: string): Promise<void> {
+  await supabase.from("addresses").insert({
+    id,
+    user_id: userId,
+    label: addr.label,
+    street: addr.street,
+    city: addr.city,
+    is_default: addr.isDefault,
+  });
+}
+
+export async function dbDeleteAddress(id: string): Promise<void> {
+  await supabase.from("addresses").delete().eq("id", id);
+}
+
+export async function dbSetDefaultAddress(userId: string, id: string): Promise<void> {
+  await supabase.from("addresses").update({ is_default: false }).eq("user_id", userId);
+  await supabase.from("addresses").update({ is_default: true }).eq("id", id);
+}
+
+// ─── Order history ─────────────────────────────────────────────────────────────
+
+export async function dbLoadOrders(userId: string): Promise<Order[]> {
+  const { data } = await supabase
+    .from("order_history")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+  if (!data) return [];
+  return data.map(rowToOrder);
+}
+
+export async function dbSaveOrder(userId: string, order: Order): Promise<void> {
+  await supabase.from("order_history").upsert(
+    {
+      id: order.id,
+      user_id: userId,
+      category_name: order.categoryName,
+      service_name: order.serviceName,
+      service_id: order.serviceId,
+      address: order.address,
+      price_total: order.priceTotal,
+      price_breakdown: order.priceBreakdown,
+      duration: order.duration,
+      comment: order.comment ?? "",
+      status: order.status,
+      scheduled_date: order.scheduledDate,
+      scheduled_time: order.scheduledTime,
+      performer_id: order.performer?.id ?? null,
+      performer_name: order.performer?.name ?? null,
+      performer_phone: order.performer?.phone ?? null,
+      performer_telegram: order.performer?.telegram ?? null,
+      performer_rating: order.performer?.rating ?? null,
+      performer_avatar: order.performer?.avatar ?? null,
+      performer_jobs_completed: order.performer?.jobsCompleted ?? null,
+      performer_review_count: order.performer?.reviewCount ?? null,
+      field_values: order.fieldValues ?? {},
+      timeline: order.timeline ?? [],
+      eta: order.eta ?? null,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "id" }
+  );
+}
+
+export async function dbUpdateOrder(id: string, fields: Record<string, unknown>): Promise<void> {
+  await supabase
+    .from("order_history")
+    .update({ ...fields, updated_at: new Date().toISOString() })
+    .eq("id", id);
+}
+
+function rowToOrder(r: Record<string, unknown>): Order {
+  const performer = r.performer_name
+    ? {
+        id: (r.performer_id as string) ?? "",
+        name: r.performer_name as string,
+        avatar: (r.performer_avatar as string) ?? "",
+        rating: (r.performer_rating as number) ?? 0,
+        reviewCount: (r.performer_review_count as number) ?? 0,
+        phone: (r.performer_phone as string) ?? "",
+        jobsCompleted: (r.performer_jobs_completed as number) ?? 0,
+        telegram: (r.performer_telegram as string) ?? undefined,
+      }
+    : null;
+
+  return {
+    id: r.id as string,
+    createdAt: r.created_at as string,
+    scheduledDate: r.scheduled_date as string,
+    scheduledTime: r.scheduled_time as string,
+    status: r.status as Order["status"],
+    categoryName: r.category_name as string,
+    serviceName: r.service_name as string,
+    serviceId: r.service_id as string,
+    address: r.address as string,
+    priceTotal: r.price_total as number,
+    priceBreakdown: (r.price_breakdown as Order["priceBreakdown"]) ?? [],
+    performer,
+    eta: (r.eta as string) ?? null,
+    duration: (r.duration as string) ?? "",
+    comment: (r.comment as string) ?? "",
+    fieldValues: (r.field_values as Order["fieldValues"]) ?? {},
+    timeline: (r.timeline as Order["timeline"]) ?? [],
+  };
+}
+
+// ─── Performer Profile ─────────────────────────────────────────────────────────
+
+export async function dbLoadPerformerProfile(userId: string): Promise<PerformerProfile | null> {
+  const { data } = await supabase
+    .from("performer_profiles")
+    .select("*")
+    .eq("user_id", userId)
+    .single();
+  if (!data) return null;
+  return {
+    id: data.user_id,
+    name: data.name,
+    avatar: data.avatar,
+    rating: data.rating,
+    completedOrders: data.completed_orders,
+    phone: data.phone,
+    telegram: data.telegram,
+    specializations: data.specializations ?? [],
+    address: data.address,
+    city: data.city,
+    lat: data.lat,
+    lng: data.lng,
+    workRadius: data.work_radius,
+  };
+}
+
+export async function dbSavePerformerProfile(userId: string, profile: Partial<PerformerProfile>): Promise<void> {
+  const row: Record<string, unknown> = { user_id: userId, updated_at: new Date().toISOString() };
+  if (profile.name !== undefined) row.name = profile.name;
+  if (profile.phone !== undefined) row.phone = profile.phone;
+  if (profile.telegram !== undefined) row.telegram = profile.telegram;
+  if (profile.avatar !== undefined) row.avatar = profile.avatar;
+  if (profile.rating !== undefined) row.rating = profile.rating;
+  if (profile.completedOrders !== undefined) row.completed_orders = profile.completedOrders;
+  if (profile.specializations !== undefined) row.specializations = profile.specializations;
+  if (profile.address !== undefined) row.address = profile.address;
+  if (profile.city !== undefined) row.city = profile.city;
+  if (profile.lat !== undefined) row.lat = profile.lat;
+  if (profile.lng !== undefined) row.lng = profile.lng;
+  if (profile.workRadius !== undefined) row.work_radius = profile.workRadius;
+  await supabase.from("performer_profiles").upsert(row, { onConflict: "user_id" });
+}
+
+export async function dbLoadPerformerBalance(userId: string): Promise<{ balance: number; pendingBalance: number } | null> {
+  const { data } = await supabase
+    .from("performer_profiles")
+    .select("balance, pending_balance")
+    .eq("user_id", userId)
+    .single();
+  if (!data) return null;
+  return { balance: data.balance, pendingBalance: data.pending_balance };
+}
+
+export async function dbUpdatePerformerBalance(userId: string, balance: number, pendingBalance: number): Promise<void> {
+  await supabase
+    .from("performer_profiles")
+    .update({ balance, pending_balance: pendingBalance, updated_at: new Date().toISOString() })
+    .eq("user_id", userId);
+}

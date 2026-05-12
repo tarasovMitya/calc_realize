@@ -11,6 +11,18 @@ import type {
   ActivePerformer,
 } from "../types";
 import { useSharedOrdersStore } from "../../store/sharedOrdersStore";
+import { useAuthStore } from "../../store/authStore";
+import {
+  dbLoadProfile,
+  dbSaveProfile,
+  dbLoadAddresses,
+  dbAddAddress,
+  dbDeleteAddress,
+  dbSetDefaultAddress,
+  dbLoadOrders,
+  dbSaveOrder,
+  dbUpdateOrder,
+} from "../../lib/db";
 
 interface DashboardState {
   orders: Order[];
@@ -19,16 +31,17 @@ interface DashboardState {
   notifications: Notification[];
   profile: UserProfile;
   isLoading: boolean;
+  isHydrated: boolean;
 
   // --- Order flow state machine ---
   paymentStatus: PaymentStatus;
   orderFlowStatus: OrderFlowStatus;
   pendingOrder: PendingOrder | null;
   activePerformer: ActivePerformer | null;
-  /** ID of the active order in sharedOrdersStore (set after payment). */
   activeSharedOrderId: string | null;
 
   // Actions
+  hydrateClient: (userId: string) => Promise<void>;
   markNotificationRead: (id: string) => void;
   markAllRead: () => void;
   setDefaultAddress: (id: string) => void;
@@ -44,24 +57,51 @@ interface DashboardState {
   startPayment: () => void;
   completePayment: () => void;
   setOrderFlowStatus: (status: OrderFlowStatus) => void;
-  /** Called when sharedOrdersStore shows performer_assigned — syncs local order list. */
   onPerformerAssigned: () => void;
   resetOrderFlow: () => void;
 }
+
+const emptyProfile: UserProfile = {
+  id: "",
+  name: "",
+  phone: "",
+  email: "",
+  address: "",
+  notifyEmail: true,
+  notifySms: true,
+  notifyPush: false,
+};
 
 export const useDashboardStore = create<DashboardState>((set, get) => ({
   orders: [],
   addresses: [],
   payments: [],
   notifications: [],
-  profile: { id: "", name: "", phone: "", email: "", address: "", notifyEmail: true, notifySms: true, notifyPush: false },
+  profile: emptyProfile,
   isLoading: false,
+  isHydrated: false,
 
   paymentStatus: "idle" as PaymentStatus,
   orderFlowStatus: "idle" as OrderFlowStatus,
   pendingOrder: null,
   activePerformer: null,
   activeSharedOrderId: null,
+
+  hydrateClient: async (userId) => {
+    set({ isLoading: true });
+    const [profile, addresses, orders] = await Promise.all([
+      dbLoadProfile(userId),
+      dbLoadAddresses(userId),
+      dbLoadOrders(userId),
+    ]);
+    set({
+      profile: profile ?? emptyProfile,
+      addresses,
+      orders,
+      isLoading: false,
+      isHydrated: true,
+    });
+  },
 
   markNotificationRead: (id) =>
     set((s) => ({
@@ -75,21 +115,27 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
       notifications: s.notifications.map((n) => ({ ...n, read: true })),
     })),
 
-  setDefaultAddress: (id) =>
+  setDefaultAddress: (id) => {
     set((s) => ({
       addresses: s.addresses.map((a) => ({ ...a, isDefault: a.id === id })),
-    })),
+    }));
+    const userId = useAuthStore.getState().user?.id;
+    if (userId) dbSetDefaultAddress(userId, id);
+  },
 
-  deleteAddress: (id) =>
-    set((s) => ({ addresses: s.addresses.filter((a) => a.id !== id) })),
+  deleteAddress: (id) => {
+    set((s) => ({ addresses: s.addresses.filter((a) => a.id !== id) }));
+    dbDeleteAddress(id);
+  },
 
-  addAddress: (address) =>
+  addAddress: (address) => {
+    const id = crypto.randomUUID();
     set((s) => ({
-      addresses: [
-        ...s.addresses,
-        { ...address, id: `addr-${Date.now()}` },
-      ],
-    })),
+      addresses: [...s.addresses, { ...address, id }],
+    }));
+    const userId = useAuthStore.getState().user?.id;
+    if (userId) dbAddAddress(userId, address, id);
+  },
 
   setDefaultPayment: (id) =>
     set((s) => ({
@@ -99,8 +145,11 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   deletePayment: (id) =>
     set((s) => ({ payments: s.payments.filter((p) => p.id !== id) })),
 
-  updateProfile: (data) =>
-    set((s) => ({ profile: { ...s.profile, ...data } })),
+  updateProfile: (data) => {
+    set((s) => ({ profile: { ...s.profile, ...data } }));
+    const userId = useAuthStore.getState().user?.id;
+    if (userId) dbSaveProfile(userId, data);
+  },
 
   simulateLoading: (ms = 800) => {
     set({ isLoading: true });
@@ -164,6 +213,10 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
       activeSharedOrderId: sharedId,
       orders: [newOrder, ...s.orders],
     }));
+
+    // Persist to DB
+    const userId = useAuthStore.getState().user?.id;
+    if (userId) dbSaveOrder(userId, newOrder);
   },
 
   setOrderFlowStatus: (status) => set({ orderFlowStatus: status }),
@@ -206,6 +259,21 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
           : o
       ),
     }));
+
+    // Persist performer assignment to DB
+    const userId = useAuthStore.getState().user?.id;
+    if (userId && activeSharedOrderId) {
+      dbUpdateOrder(activeSharedOrderId, {
+        status: "assigned",
+        performer_id: sharedOrder.performerId ?? null,
+        performer_name: sharedOrder.performerName,
+        performer_phone: sharedOrder.performerPhone ?? null,
+        performer_telegram: sharedOrder.performerTelegram ?? null,
+        performer_rating: sharedOrder.performerRating ?? null,
+        performer_avatar: sharedOrder.performerAvatar ?? null,
+        performer_jobs_completed: sharedOrder.performerJobsCompleted ?? null,
+      });
+    }
   },
 
   resetOrderFlow: () =>

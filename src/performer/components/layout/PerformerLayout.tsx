@@ -1,8 +1,20 @@
+import { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { PerformerSidebar } from "./PerformerSidebar";
 import { MobilePerformerNav } from "./MobilePerformerNav";
+import { useAuthStore } from "../../../store/authStore";
+import { usePerformerStore } from "../../store/performerStore";
 
 export function PerformerLayout() {
+  const { user } = useAuthStore();
+  const { hydratePerformer, isHydrated } = usePerformerStore();
+
+  useEffect(() => {
+    if (user?.id && !isHydrated) {
+      hydratePerformer(user.id);
+    }
+  }, [user?.id]);
+
   return (
     <div className="flex min-h-screen bg-white">
       <PerformerSidebar />

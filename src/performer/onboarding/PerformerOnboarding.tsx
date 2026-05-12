@@ -103,7 +103,7 @@ export function PerformerOnboarding() {
       return;
     }
 
-    updateProfile({
+    const profileData = {
       name: name || "Новый исполнитель",
       phone,
       avatar: avatarUrl,
@@ -113,7 +113,8 @@ export function PerformerOnboarding() {
       lng,
       workRadius: radius,
       specializations: skills,
-    });
+    };
+    updateProfile(profileData);
     await supabase.auth.updateUser({ data: { performer_role: true, performer_onboarded: true } });
     complete();
     reset();

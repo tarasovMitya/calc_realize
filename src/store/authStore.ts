@@ -40,5 +40,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   signOut: async () => {
     await supabase.auth.signOut();
     set({ user: null, session: null, isAuthenticated: false });
+    // Reset hydration flags so next login reloads data from DB
+    // Lazy imports to avoid circular deps
+    const { useDashboardStore } = await import("../dashboard/store/dashboardStore");
+    const { usePerformerStore } = await import("../performer/store/performerStore");
+    useDashboardStore.setState({ isHydrated: false, orders: [], addresses: [], notifications: [], profile: { id: "", name: "", phone: "", email: "", address: "", notifyEmail: true, notifySms: true, notifyPush: false } });
+    usePerformerStore.setState({ isHydrated: false });
   },
 }));

@@ -11,6 +11,13 @@ import type {
 import { useSharedOrdersStore } from "../../store/sharedOrdersStore";
 import type { AcceptResult } from "../../store/sharedOrdersStore";
 import { calculateDistance, estimateETA, formatDistance } from "../utils/distance";
+import { useAuthStore } from "../../store/authStore";
+import {
+  dbLoadPerformerProfile,
+  dbSavePerformerProfile,
+  dbLoadPerformerBalance,
+  dbUpdatePerformerBalance,
+} from "../../lib/db";
 
 interface PerformerState {
   profile: PerformerProfile;
@@ -24,8 +31,10 @@ interface PerformerState {
   notifications: PerformerNotification[];
   bankCards: BankCard[];
   withdrawHistory: WithdrawRecord[];
+  isHydrated: boolean;
 
   // Actions
+  hydratePerformer: (userId: string) => Promise<void>;
   toggleOnline: () => void;
   acceptOrder: (orderId: string) => AcceptResult;
   rejectOrder: (orderId: string) => void;
@@ -83,6 +92,26 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
   notifications: [],
   bankCards: [],
   withdrawHistory: [],
+  isHydrated: false,
+
+  hydratePerformer: async (userId) => {
+    const [profile, balanceData] = await Promise.all([
+      dbLoadPerformerProfile(userId),
+      dbLoadPerformerBalance(userId),
+    ]);
+    if (profile) {
+      set((s) => ({
+        profile,
+        availableOrders: enrichWithDistance([...s.availableOrders], profile),
+        isHydrated: true,
+      }));
+    } else {
+      set({ isHydrated: true });
+    }
+    if (balanceData) {
+      set({ balance: balanceData.balance, pendingBalance: balanceData.pendingBalance });
+    }
+  },
 
   toggleOnline: () => set((s) => ({ isOnline: !s.isOnline })),
 
@@ -182,12 +211,19 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
           date: new Date().toISOString().split("T")[0],
           time: now,
         };
+        const newPendingBalance = s.pendingBalance + order.priceTotal;
+        const newCompleted = s.profile.completedOrders + 1;
+        const userId = useAuthStore.getState().user?.id;
+        if (userId) {
+          dbUpdatePerformerBalance(userId, s.balance, newPendingBalance);
+          dbSavePerformerProfile(userId, { completedOrders: newCompleted });
+        }
         return {
           activeOrders: s.activeOrders.filter((o) => o.id !== orderId),
           completedOrders: [updatedOrder, ...s.completedOrders],
           earnings: [earningsRecord, ...s.earnings],
-          pendingBalance: s.pendingBalance + order.priceTotal,
-          profile: { ...s.profile, completedOrders: s.profile.completedOrders + 1 },
+          pendingBalance: newPendingBalance,
+          profile: { ...s.profile, completedOrders: newCompleted },
         };
       }
       return { activeOrders: s.activeOrders.map((o) => (o.id === orderId ? updatedOrder : o)) };
@@ -202,14 +238,17 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
   markAllRead: () =>
     set((s) => ({ notifications: s.notifications.map((n) => ({ ...n, read: true })) })),
 
-  updateProfile: (data) =>
+  updateProfile: (data) => {
     set((s) => {
       const updated = { ...s.profile, ...data };
       return {
         profile: updated,
         availableOrders: enrichWithDistance(s.availableOrders, updated),
       };
-    }),
+    });
+    const userId = useAuthStore.getState().user?.id;
+    if (userId) dbSavePerformerProfile(userId, data);
+  },
 
   withdraw: (amount, cardId) =>
     set((s) => {
