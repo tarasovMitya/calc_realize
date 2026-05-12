@@ -11,6 +11,7 @@ import type {
   ActivePerformer,
 } from "../types";
 import { useSharedOrdersStore } from "../../store/sharedOrdersStore";
+import type { SharedOrder } from "../../store/sharedOrdersStore";
 import { useAuthStore } from "../../store/authStore";
 import {
   dbLoadProfile,
@@ -62,6 +63,7 @@ interface DashboardState {
   completePayment: () => void;
   setOrderFlowStatus: (status: OrderFlowStatus) => void;
   onPerformerAssigned: () => void;
+  applyPerformerFromSharedOrder: (sharedOrder: SharedOrder) => void;
   cancelOrder: (orderId: string) => void;
   resetOrderFlow: () => void;
 }
@@ -325,6 +327,61 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
         o.id === activeSharedOrderId ? { ...o, assignedAt } : o
       ),
     }));
+  },
+
+  applyPerformerFromSharedOrder: (sharedOrder) => {
+    const { orderFlowStatus, activeSharedOrderId } = get();
+    // Guard: only apply if still in searching state and IDs match
+    if (orderFlowStatus !== "searching" || activeSharedOrderId !== sharedOrder.id) return;
+    if (!sharedOrder.performerName) return;
+
+    const assignedAt = new Date().toISOString();
+    const assignedTime = new Date().toLocaleTimeString("ru-RU", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    set((s) => ({
+      orderFlowStatus: "assigned",
+      orders: s.orders.map((o) =>
+        o.id === sharedOrder.id
+          ? {
+              ...o,
+              status: "assigned" as const,
+              assignedAt,
+              performer: {
+                id: sharedOrder.performerId ?? "",
+                name: sharedOrder.performerName!,
+                avatar: sharedOrder.performerAvatar ?? sharedOrder.performerName!.slice(0, 2).toUpperCase(),
+                rating: sharedOrder.performerRating ?? 0,
+                reviewCount: sharedOrder.performerJobsCompleted ?? 0,
+                phone: sharedOrder.performerPhone ?? "",
+                jobsCompleted: sharedOrder.performerJobsCompleted ?? 0,
+                telegram: sharedOrder.performerTelegram ?? undefined,
+              },
+              eta: `${new Date(o.scheduledDate).toLocaleDateString("ru-RU", { day: "numeric", month: "long" })} в ${o.scheduledTime}`,
+              timeline: o.timeline.map((t, i) =>
+                i >= 2 ? { ...t, time: assignedTime, completed: true } : t
+              ),
+            }
+          : o
+      ),
+    }));
+
+    const userId = useAuthStore.getState().user?.id;
+    if (userId) {
+      dbUpdateOrder(sharedOrder.id, {
+        status: "assigned",
+        assigned_at: assignedAt,
+        performer_id: sharedOrder.performerId ?? null,
+        performer_name: sharedOrder.performerName,
+        performer_phone: sharedOrder.performerPhone ?? null,
+        performer_telegram: sharedOrder.performerTelegram ?? null,
+        performer_rating: sharedOrder.performerRating ?? null,
+        performer_avatar: sharedOrder.performerAvatar ?? null,
+        performer_jobs_completed: sharedOrder.performerJobsCompleted ?? null,
+      });
+    }
   },
 
   cancelOrder: (orderId) => {

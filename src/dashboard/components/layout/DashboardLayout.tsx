@@ -10,7 +10,7 @@ import type { SharedOrder } from "../../../store/sharedOrdersStore";
 
 export function DashboardLayout() {
   const { user } = useAuthStore();
-  const { hydrateClient, isHydrated, orderFlowStatus, activeSharedOrderId, onPerformerAssigned } = useDashboardStore();
+  const { hydrateClient, isHydrated, orderFlowStatus, activeSharedOrderId, applyPerformerFromSharedOrder } = useDashboardStore();
   const { updateOrder: updateSharedOrder } = useSharedOrdersStore();
 
   useEffect(() => {
@@ -26,7 +26,7 @@ export function DashboardLayout() {
     const handleUpdate = (order: SharedOrder) => {
       updateSharedOrder(order);
       if (order.status === "performer_assigned") {
-        onPerformerAssigned();
+        applyPerformerFromSharedOrder(order);
       }
     };
 

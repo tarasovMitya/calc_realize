@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Plus, RotateCcw, ClipboardList, LogOut } from "lucide-react";
 import { useDashboardStore } from "../store/dashboardStore";
-import { useSharedOrdersStore } from "../../store/sharedOrdersStore";
 import { useCalculatorStore } from "../../store/calculatorStore";
 import { useAuthStore } from "../../store/authStore";
 import { ActiveOrderCard } from "../components/cards/ActiveOrderCard";
@@ -20,15 +19,10 @@ export function DashboardPage() {
   const navigate = useNavigate();
   const {
     orders, isLoading, simulateLoading, addresses,
-    orderFlowStatus, onPerformerAssigned, activeSharedOrderId, cancelOrder,
+    orderFlowStatus, cancelOrder,
   } = useDashboardStore();
   const { setSkipAuth, setContacts } = useCalculatorStore();
   const { user, signOut } = useAuthStore();
-
-  const sharedOrders = useSharedOrdersStore((s) => s.orders);
-  const sharedOrder = activeSharedOrderId
-    ? sharedOrders.find((o) => o.id === activeSharedOrderId) ?? null
-    : null;
 
   const displayName = user?.user_metadata?.full_name as string | undefined
     ?? user?.email?.split("@")[0]
@@ -37,12 +31,6 @@ export function DashboardPage() {
   useEffect(() => {
     simulateLoading(600);
   }, []);
-
-  useEffect(() => {
-    if (orderFlowStatus === "searching" && sharedOrder?.status === "performer_assigned") {
-      onPerformerAssigned();
-    }
-  }, [sharedOrder?.status, orderFlowStatus]);
 
   const handleNewOrder = () => {
     const defaultAddress = addresses.find((a) => a.isDefault);
