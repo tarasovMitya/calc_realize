@@ -4,9 +4,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { Variants } from "framer-motion";
 import {
   Zap, Droplet, Sparkles, Hammer, Package, Wrench,
-  CheckCircle, Clock, Star, Shield, ChevronDown, ChevronRight,
+  CheckCircle, Clock, Star, Shield, ChevronDown,
   Menu, X, ArrowRight, MapPin, UserCheck, Lock, TrendingUp,
 } from "lucide-react";
+import { Calculator } from "../components/Calculator";
 
 // ─── Animation presets ───────────────────────────────────────────────────────
 
@@ -411,73 +412,16 @@ function HowItWorksSection() {
 // ─── Calculator launcher ──────────────────────────────────────────────────────
 
 function CalculatorSection() {
-  const navigate = useNavigate();
-  const [selected, setSelected] = useState<string | null>(null);
-
   return (
     <section className="py-20">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6">
         <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={vp}>
-          <motion.div variants={fadeUp} className="text-center mb-12">
+          <motion.div variants={fadeUp} className="text-center mb-10">
             <h2 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">Рассчитайте стоимость</h2>
-            <p className="text-gray-500 mt-3">Выберите категорию и посмотрите предварительную цену</p>
+            <p className="text-gray-500 mt-3">Выберите услугу и оформите заказ прямо здесь</p>
           </motion.div>
-
-          <motion.div variants={fadeUp} className="max-w-2xl mx-auto">
-            <div className="bg-gray-50 rounded-3xl p-6 sm:p-8 border border-gray-100">
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Категория</p>
-              <div className="flex flex-wrap gap-2 mb-6">
-                {Object.keys(CAT_PREVIEWS).map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setSelected(cat === selected ? null : cat)}
-                    className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                      selected === cat ? "bg-black text-white" : "bg-white border border-gray-200 text-gray-700 hover:border-gray-400"
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
-
-              <AnimatePresence>
-                {selected && CAT_PREVIEWS[selected] && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="overflow-hidden"
-                  >
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Популярные услуги</p>
-                    <div className="flex flex-col gap-2 mb-4">
-                      {CAT_PREVIEWS[selected].services.map((svc) => (
-                        <div
-                          key={svc}
-                          onClick={() => navigate("/calculator")}
-                          className="flex items-center gap-3 p-3 bg-white rounded-xl border border-gray-100 cursor-pointer hover:border-gray-300 transition-colors"
-                        >
-                          <CheckCircle size={14} className="text-gray-200 shrink-0" />
-                          <span className="text-sm text-gray-700">{svc}</span>
-                          <ChevronRight size={14} className="text-gray-300 ml-auto shrink-0" />
-                        </div>
-                      ))}
-                    </div>
-                    <div className="bg-white rounded-2xl px-4 py-3 border border-gray-100 flex items-center justify-between mb-4">
-                      <span className="text-sm text-gray-500">Предварительная стоимость</span>
-                      <span className="text-xl font-black text-gray-900">{CAT_PREVIEWS[selected].price}</span>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              <button
-                onClick={() => navigate("/calculator")}
-                className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-base hover:bg-gray-800 transition-all active:scale-95 flex items-center justify-center gap-2"
-              >
-                {selected ? "Продолжить оформление" : "Открыть калькулятор"}
-                <ArrowRight size={18} />
-              </button>
-            </div>
+          <motion.div variants={fadeUp}>
+            <Calculator embedded />
           </motion.div>
         </motion.div>
       </div>

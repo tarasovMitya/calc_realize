@@ -29,7 +29,7 @@ const STEPS_ORDER = [
   "success",
 ];
 
-export function Calculator() {
+export function Calculator({ embedded = false }: { embedded?: boolean }) {
   const navigate = useNavigate();
   const { setPendingOrder } = useDashboardStore();
   const {
@@ -121,6 +121,64 @@ export function Calculator() {
   // Steps where we hide the nav (they have self-contained CTAs)
   const selfContained = ["category", "service", "auth"];
   const showNavigation = !selfContained.includes(step);
+
+  if (embedded) {
+    return (
+      <div className="bg-gray-50 rounded-3xl border border-gray-100 overflow-hidden">
+        <div className="p-6 sm:p-8">
+          {canGoBack && (
+            <button
+              onClick={goBack}
+              className="text-sm text-gray-400 hover:text-gray-700 flex items-center gap-1 transition-colors mb-4"
+            >
+              ← Назад
+            </button>
+          )}
+          <ProgressBar />
+          <div className="mt-6">
+            <AnimatePresence mode="wait" custom={stepIdx}>
+              <motion.div
+                key={step}
+                custom={stepIdx}
+                variants={variants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }}
+              >
+                {step === "category" && <CategoryStep />}
+                {step === "service" && <ServiceStep />}
+                {step === "parameters" && <ParametersStep />}
+                {step === "datetime" && <DateTimeStep />}
+                {step === "auth" && <AuthStep />}
+                {step === "checkout" && <CheckoutStep />}
+              </motion.div>
+            </AnimatePresence>
+
+            {showNavigation && (
+              <div className="mt-6 flex gap-3">
+                {canGoBack && (
+                  <button
+                    onClick={goBack}
+                    className="px-6 py-3 rounded-xl border-2 border-gray-100 text-sm font-semibold text-gray-600 hover:border-gray-300 transition-all"
+                  >
+                    Назад
+                  </button>
+                )}
+                <button
+                  onClick={handleNext}
+                  disabled={isSubmitting}
+                  className="px-8 py-3 rounded-xl bg-black text-white text-sm font-semibold hover:bg-gray-800 disabled:opacity-50 transition-all active:scale-95"
+                >
+                  {isSubmitting ? "Оформляем..." : submitLabel}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
