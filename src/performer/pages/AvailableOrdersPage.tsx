@@ -62,7 +62,7 @@ export function AvailableOrdersPage() {
   const [unavailableIds, setUnavailableIds] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<string | null>(null);
 
-  const allOrders = [...realOrders, ...availableOrders];
+  const allOrders = [...realOrders, ...availableOrders]; // availableOrders is [] until real backend data
   const sorted = sortOrders(allOrders, sortBy);
 
   const handleAccept = (orderId: string) => {

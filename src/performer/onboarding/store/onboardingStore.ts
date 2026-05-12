@@ -4,15 +4,17 @@ import type { OnboardingState, OnboardingData, OnboardingSkill, AvailabilitySlot
 const INITIAL: OnboardingData = {
   name: "",
   phone: "",
-  email: "",
+  avatarUrl: "",
   skills: [],
   experience: "",
   hasCertification: false,
   city: "",
   district: "",
   address: "",
+  lat: 0,
+  lng: 0,
   radius: 10,
-  hasPassport: false,
+  inn: "",
   availability: [],
 };
 

@@ -14,7 +14,7 @@ export interface OnboardingData {
   // Step 1
   name: string;
   phone: string;
-  email: string;
+  avatarUrl: string;
   // Step 2
   skills: OnboardingSkill[];
   // Step 3
@@ -24,10 +24,12 @@ export interface OnboardingData {
   city: string;
   district: string;
   address: string;
+  lat: number;
+  lng: number;
   // Step 5
   radius: number;
   // Step 6
-  hasPassport: boolean;
+  inn: string;
   // Step 7
   availability: AvailabilitySlot[];
 }

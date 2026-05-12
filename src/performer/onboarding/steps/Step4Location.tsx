@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
-import { Navigation } from "lucide-react";
+import { Navigation, Loader2 } from "lucide-react";
 import { useOnboardingStore } from "../store/onboardingStore";
 import { NavigationButtons } from "../components/NavigationButtons";
 
@@ -10,14 +11,9 @@ interface FormData {
   address: string;
 }
 
-const MOCK_ADDRESS = {
-  city: "Москва",
-  district: "Центральный",
-  address: "ул. Ленина, 12",
-};
-
 export function Step4Location() {
   const { city, district, address, setField, goNext, goBack } = useOnboardingStore();
+  const [locating, setLocating] = useState(false);
 
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormData>({
     defaultValues: { city, district, address },
@@ -30,10 +26,36 @@ export function Step4Location() {
     goNext();
   };
 
-  const handleMockLocation = () => {
-    setValue("city", MOCK_ADDRESS.city);
-    setValue("district", MOCK_ADDRESS.district);
-    setValue("address", MOCK_ADDRESS.address);
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) return;
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setField("lat", latitude);
+        setField("lng", longitude);
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=ru`,
+            { headers: { "Accept-Language": "ru" } }
+          );
+          const data = await res.json();
+          const addr = data.address ?? {};
+          const detectedCity = addr.city || addr.town || addr.village || "";
+          const detectedDistrict = addr.suburb || addr.city_district || "";
+          const street = addr.road || "";
+          const house = addr.house_number || "";
+          setValue("city", detectedCity);
+          setValue("district", detectedDistrict);
+          setValue("address", house ? `${street}, ${house}` : street);
+        } catch {
+          // leave fields as-is if reverse geocode fails
+        }
+        setLocating(false);
+      },
+      () => setLocating(false),
+      { timeout: 8000 }
+    );
   };
 
   return (
@@ -48,13 +70,18 @@ export function Step4Location() {
         <p className="text-gray-400 mt-1 text-sm">Откуда вы работаете</p>
       </div>
 
-      {/* Mock geolocation button */}
       <button
-        onClick={handleMockLocation}
-        className="flex items-center gap-2 w-full px-4 py-3 rounded-2xl border-2 border-dashed border-gray-200 text-sm font-medium text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-all mb-5"
+        type="button"
+        onClick={handleGetLocation}
+        disabled={locating}
+        className="flex items-center gap-2 w-full px-4 py-3 rounded-2xl border-2 border-dashed border-gray-200 text-sm font-medium text-gray-500 hover:border-gray-400 hover:text-gray-700 disabled:opacity-50 transition-all mb-5"
       >
-        <Navigation size={15} className="text-gray-400" />
-        Использовать текущую геопозицию
+        {locating ? (
+          <Loader2 size={15} className="text-gray-400 animate-spin" />
+        ) : (
+          <Navigation size={15} className="text-gray-400" />
+        )}
+        {locating ? "Определяем местоположение..." : "Использовать текущую геопозицию"}
       </button>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
@@ -77,10 +104,7 @@ export function Step4Location() {
           {...register("address", { required: "Введите адрес" })}
         />
 
-        <NavigationButtons
-          onBack={goBack}
-          onNext={handleSubmit(onSubmit)}
-        />
+        <NavigationButtons onBack={goBack} onNext={handleSubmit(onSubmit)} />
       </form>
     </motion.div>
   );

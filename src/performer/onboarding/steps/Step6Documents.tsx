@@ -1,10 +1,23 @@
+import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
-import { Upload, ShieldCheck } from "lucide-react";
 import { useOnboardingStore } from "../store/onboardingStore";
 import { NavigationButtons } from "../components/NavigationButtons";
 
+interface FormData {
+  inn: string;
+}
+
 export function Step6Documents() {
-  const { hasPassport, setField, goNext, goBack } = useOnboardingStore();
+  const { inn, setField, goNext, goBack } = useOnboardingStore();
+
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+    defaultValues: { inn },
+  });
+
+  const onSubmit = (data: FormData) => {
+    setField("inn", data.inn);
+    goNext();
+  };
 
   return (
     <motion.div
@@ -14,47 +27,39 @@ export function Step6Documents() {
       transition={{ duration: 0.25, ease: "easeOut" }}
     >
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Верификация</h1>
-        <p className="text-gray-400 mt-1 text-sm">Проверка личности повышает доверие клиентов</p>
+        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">ИНН</h1>
+        <p className="text-gray-400 mt-1 text-sm">Необходим для официальных выплат</p>
       </div>
 
-      {/* Passport toggle */}
-      <div className="flex items-center justify-between px-5 py-4 rounded-2xl bg-white border border-gray-100 mb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">
-            <ShieldCheck size={18} className="text-gray-500" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-gray-900">Паспорт проверен</p>
-            <p className="text-xs text-gray-400 mt-0.5">Ваша личность подтверждена</p>
-          </div>
-        </div>
-        <button
-          onClick={() => setField("hasPassport", !hasPassport)}
-          className={`relative w-12 h-6 rounded-full transition-colors shrink-0 ${
-            hasPassport ? "bg-black" : "bg-gray-300"
-          }`}
-        >
-          <motion.div
-            animate={{ x: hasPassport ? 24 : 2 }}
-            transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className="absolute top-1 w-4 h-4 rounded-full bg-white shadow"
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+        <div>
+          <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">
+            ИНН физического лица
+          </label>
+          <input
+            {...register("inn", {
+              required: "Введите ИНН",
+              pattern: { value: /^\d{12}$/, message: "ИНН должен содержать 12 цифр" },
+            })}
+            type="text"
+            inputMode="numeric"
+            maxLength={12}
+            placeholder="123456789012"
+            className={`w-full px-4 py-3.5 rounded-2xl border-2 text-sm font-medium text-gray-900 bg-white outline-none transition-colors placeholder-gray-300 ${
+              errors.inn ? "border-red-300 focus:border-red-500" : "border-gray-100 focus:border-gray-400"
+            }`}
           />
-        </button>
-      </div>
+          {errors.inn && <p className="text-xs text-red-500 mt-1.5">{errors.inn.message}</p>}
+        </div>
 
-      {/* Upload button (UI only) */}
-      <button className="flex items-center gap-3 w-full px-5 py-4 rounded-2xl border-2 border-dashed border-gray-200 text-sm font-medium text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-all mb-3">
-        <Upload size={16} className="text-gray-400" />
-        Загрузить скан паспорта
-        <span className="ml-auto text-xs text-gray-300">JPG, PDF</span>
-      </button>
+        <div className="rounded-2xl bg-gray-50 border border-gray-100 px-4 py-3">
+          <p className="text-xs text-gray-500 leading-relaxed">
+            Верификация личности будет доступна через Госуслуги. ИНН используется только для оформления выплат.
+          </p>
+        </div>
 
-      <p className="text-xs text-gray-400 text-center mb-2">
-        Документы проходят модерацию в течение 1 рабочего дня
-      </p>
-
-      <NavigationButtons onBack={goBack} onNext={goNext} nextLabel="Продолжить" />
+        <NavigationButtons onBack={goBack} onNext={handleSubmit(onSubmit)} nextLabel="Продолжить" />
+      </form>
     </motion.div>
   );
 }

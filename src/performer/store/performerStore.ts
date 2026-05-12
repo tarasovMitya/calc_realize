@@ -10,16 +10,6 @@ import type {
 } from "../types";
 import { useSharedOrdersStore } from "../../store/sharedOrdersStore";
 import type { AcceptResult } from "../../store/sharedOrdersStore";
-import {
-  mockPerformerProfile,
-  mockAvailableOrders,
-  mockActiveOrders,
-  mockCompletedOrders,
-  mockEarnings,
-  mockPerformerNotifications,
-  mockBankCards,
-  mockWithdrawHistory,
-} from "../data/mockData";
 import { calculateDistance, estimateETA, formatDistance } from "../utils/distance";
 
 interface PerformerState {
@@ -65,18 +55,34 @@ function enrichWithDistance(
   });
 }
 
+const emptyProfile: PerformerProfile = {
+  id: "",
+  name: "",
+  avatar: "",
+  rating: 0,
+  completedOrders: 0,
+  phone: "",
+  telegram: "",
+  specializations: [],
+  address: "",
+  city: "",
+  lat: 0,
+  lng: 0,
+  workRadius: 10,
+};
+
 export const usePerformerStore = create<PerformerState>((set, get) => ({
-  profile: mockPerformerProfile,
+  profile: emptyProfile,
   isOnline: true,
-  balance: 13500,
-  pendingBalance: 7500,
-  availableOrders: enrichWithDistance(mockAvailableOrders, mockPerformerProfile),
-  activeOrders: mockActiveOrders,
-  completedOrders: mockCompletedOrders,
-  earnings: mockEarnings,
-  notifications: mockPerformerNotifications,
-  bankCards: mockBankCards,
-  withdrawHistory: mockWithdrawHistory,
+  balance: 0,
+  pendingBalance: 0,
+  availableOrders: [],
+  activeOrders: [],
+  completedOrders: [],
+  earnings: [],
+  notifications: [],
+  bankCards: [],
+  withdrawHistory: [],
 
   toggleOnline: () => set((s) => ({ isOnline: !s.isOnline })),
 

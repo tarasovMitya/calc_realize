@@ -1,27 +1,49 @@
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
+import { Camera } from "lucide-react";
 import { useOnboardingStore } from "../store/onboardingStore";
 import { NavigationButtons } from "../components/NavigationButtons";
 
 interface FormData {
   name: string;
   phone: string;
-  email: string;
 }
 
 export function Step1Basic() {
-  const { name, phone, email, setField, goNext } = useOnboardingStore();
+  const { name, phone, avatarUrl, setField, goNext } = useOnboardingStore();
+  const [preview, setPreview] = useState(avatarUrl);
+  const fileRef = useRef<HTMLInputElement>(null);
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
-    defaultValues: { name, phone, email },
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>({
+    defaultValues: { name, phone },
   });
+
+  const watchedName = watch("name", name);
 
   const onSubmit = (data: FormData) => {
     setField("name", data.name);
     setField("phone", data.phone);
-    setField("email", data.email);
     goNext();
   };
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const url = reader.result as string;
+      setPreview(url);
+      setField("avatarUrl", url);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const initials = watchedName
+    .split(" ")
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .slice(0, 2)
+    .join("");
 
   return (
     <motion.div
@@ -33,6 +55,31 @@ export function Step1Basic() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Расскажите о себе</h1>
         <p className="text-gray-400 mt-1 text-sm">Базовая информация для вашего профиля</p>
+      </div>
+
+      {/* Avatar upload */}
+      <div className="flex justify-center mb-6">
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          className="relative w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden group cursor-pointer"
+        >
+          {preview ? (
+            <img src={preview} alt="avatar" className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-2xl font-bold text-gray-400">{initials || "?"}</span>
+          )}
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
+            <Camera size={20} className="text-white" />
+          </div>
+        </button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleAvatarChange}
+        />
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
@@ -50,16 +97,6 @@ export function Step1Basic() {
           {...register("phone", {
             required: "Введите номер телефона",
             pattern: { value: /^\+?[0-9\s\-()]{10,}$/, message: "Некорректный номер" },
-          })}
-        />
-        <Field
-          label="Email"
-          placeholder="name@example.com"
-          type="email"
-          error={errors.email?.message}
-          {...register("email", {
-            required: "Введите email",
-            pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: "Некорректный email" },
           })}
         />
 

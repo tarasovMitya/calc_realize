@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Star, Phone, MessageCircle, Edit3, Check, Plus } from "lucide-react";
+import { Phone, MessageCircle, Edit3, Check, Plus, Camera, CreditCard } from "lucide-react";
 import { usePerformerStore } from "../store/performerStore";
 import { AddressSection } from "../components/ui/AddressSection";
 import { BankCardItem } from "../components/ui/BankCardItem";
@@ -13,11 +13,22 @@ export function PerformerProfilePage() {
     phone: profile.phone,
     telegram: profile.telegram,
   });
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const handleSave = () => {
     updateProfile(form);
     setEditing(false);
   };
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => updateProfile({ avatar: reader.result as string });
+    reader.readAsDataURL(file);
+  };
+
+  const isImage = profile.avatar.startsWith("data:") || profile.avatar.startsWith("http");
 
   return (
     <div className="max-w-2xl mx-auto px-4 pt-8 pb-10">
@@ -33,29 +44,51 @@ export function PerformerProfilePage() {
         className="border border-gray-100 rounded-2xl p-6 mb-4"
       >
         <div className="flex items-center gap-5">
-          <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center text-3xl font-bold text-gray-600 shrink-0">
-            {profile.avatar}
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">{profile.name}</h2>
-            <div className="flex items-center gap-1.5 mt-1">
-              <Star size={14} className="text-amber-400 fill-amber-400" />
-              <span className="text-sm font-semibold text-gray-800">{profile.rating}</span>
-              <span className="text-sm text-gray-400">· {profile.completedOrders} заказов</span>
+          {/* Avatar */}
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="relative w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden group shrink-0 cursor-pointer"
+          >
+            {isImage ? (
+              <img src={profile.avatar} alt="avatar" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-3xl font-bold text-gray-600">
+                {profile.avatar || profile.name.split(" ").map((w) => w[0]).slice(0, 2).join("") || "?"}
+              </span>
+            )}
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <Camera size={18} className="text-white" />
             </div>
+          </button>
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+
+          <div>
+            <h2 className="text-xl font-bold text-gray-900">{profile.name || "Новый исполнитель"}</h2>
+            {profile.completedOrders > 0 ? (
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="text-amber-400">★</span>
+                <span className="text-sm font-semibold text-gray-800">{profile.rating}</span>
+                <span className="text-sm text-gray-400">· {profile.completedOrders} заказов</span>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-400 mt-1">Пока нет выполненных заказов</p>
+            )}
           </div>
         </div>
 
-        <div className="mt-5 flex flex-wrap gap-2">
-          {profile.specializations.map((s) => (
-            <span
-              key={s}
-              className="px-3 py-1 rounded-full bg-gray-100 text-xs font-semibold text-gray-700"
-            >
-              {s}
-            </span>
-          ))}
-        </div>
+        {profile.specializations.length > 0 && (
+          <div className="mt-5 flex flex-wrap gap-2">
+            {profile.specializations.map((s) => (
+              <span
+                key={s}
+                className="px-3 py-1 rounded-full bg-gray-100 text-xs font-semibold text-gray-700"
+              >
+                {s}
+              </span>
+            ))}
+          </div>
+        )}
       </motion.div>
 
       {/* Contact info */}
@@ -113,21 +146,30 @@ export function PerformerProfilePage() {
       >
         <div className="flex items-center justify-between mb-3">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Карты для выплат</p>
-          <button className="flex items-center gap-1 text-xs font-semibold text-gray-600 hover:text-gray-900 transition-colors">
-            <Plus size={13} />
-            Добавить
-          </button>
+          {bankCards.length > 0 && (
+            <button className="flex items-center gap-1 text-xs font-semibold text-gray-600 hover:text-gray-900 transition-colors">
+              <Plus size={13} />
+              Добавить
+            </button>
+          )}
         </div>
-        <div className="flex flex-col gap-2">
-          {bankCards.map((card) => (
-            <BankCardItem
-              key={card.id}
-              card={card}
-              onSetDefault={() => setDefaultCard(card.id)}
-              onDelete={() => removeBankCard(card.id)}
-            />
-          ))}
-        </div>
+        {bankCards.length === 0 ? (
+          <div className="flex items-center gap-3 px-4 py-4 rounded-2xl border border-gray-100 bg-gray-50">
+            <CreditCard size={18} className="text-gray-300 shrink-0" />
+            <p className="text-sm text-gray-400">Карты появятся после выполнения первого заказа</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {bankCards.map((card) => (
+              <BankCardItem
+                key={card.id}
+                card={card}
+                onSetDefault={() => setDefaultCard(card.id)}
+                onDelete={() => removeBankCard(card.id)}
+              />
+            ))}
+          </div>
+        )}
       </motion.div>
 
       {/* Stats block */}
@@ -137,7 +179,7 @@ export function PerformerProfilePage() {
         transition={{ delay: 0.17 }}
         className="grid grid-cols-3 gap-3"
       >
-        <StatCard label="Рейтинг" value={String(profile.rating)} />
+        <StatCard label="Рейтинг" value={profile.completedOrders > 0 ? String(profile.rating) : "—"} />
         <StatCard label="Заказов" value={String(profile.completedOrders)} />
         <StatCard label="Специализаций" value={String(profile.specializations.length)} />
       </motion.div>
@@ -170,7 +212,7 @@ function Field({
             className="w-full text-sm font-medium text-gray-900 bg-gray-50 rounded-lg px-2 py-1 mt-0.5 outline-none border border-gray-200 focus:border-gray-400 transition-colors"
           />
         ) : (
-          <p className="text-sm font-medium text-gray-900 mt-0.5">{value}</p>
+          <p className="text-sm font-medium text-gray-900 mt-0.5">{value || "—"}</p>
         )}
       </div>
     </div>
