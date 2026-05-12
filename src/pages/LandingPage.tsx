@@ -6,7 +6,6 @@ import {
   Zap, Droplet, Sparkles, Hammer, Package, Wrench,
   CheckCircle, Clock, Star, Shield, ChevronDown, ChevronRight,
   Menu, X, ArrowRight, MapPin, UserCheck, Lock, TrendingUp,
-  CreditCard,
 } from "lucide-react";
 
 // ─── Animation presets ───────────────────────────────────────────────────────
