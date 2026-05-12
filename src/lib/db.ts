@@ -341,6 +341,17 @@ export function dbSubscribeSharedOrderUpdates(
   return () => { supabase.removeChannel(channel); };
 }
 
+export async function dbLoadPerformerActiveOrders(performerId: string): Promise<SharedOrder[]> {
+  const { data } = await supabase
+    .from("shared_orders")
+    .select("*")
+    .eq("performer_id", performerId)
+    .in("status", ["performer_assigned", "in_progress"])
+    .order("created_at", { ascending: false });
+  if (!data) return [];
+  return data.map(rowToSharedOrder);
+}
+
 export async function dbGetSharedOrder(orderId: string): Promise<SharedOrder | null> {
   const { data } = await supabase
     .from("shared_orders")

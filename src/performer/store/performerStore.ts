@@ -19,6 +19,7 @@ import {
   dbUpdatePerformerBalance,
   dbUpdateOrder,
   dbAcceptSharedOrder,
+  dbLoadPerformerActiveOrders,
 } from "../../lib/db";
 
 interface PerformerState {
@@ -97,18 +98,43 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
   isHydrated: false,
 
   hydratePerformer: async (userId) => {
-    const [profile, balanceData] = await Promise.all([
+    const [profile, balanceData, sharedActiveOrders] = await Promise.all([
       dbLoadPerformerProfile(userId),
       dbLoadPerformerBalance(userId),
+      dbLoadPerformerActiveOrders(userId),
     ]);
+
+    const restoredActiveOrders: PerformerOrder[] = sharedActiveOrders.map((o) => ({
+      id: o.id,
+      createdAt: o.createdAt,
+      scheduledDate: o.scheduledDate,
+      scheduledTime: o.scheduledTime,
+      status: "accepted" as PerformerOrderStatus,
+      categoryName: o.categoryName,
+      serviceName: o.serviceName,
+      address: o.address,
+      priceTotal: o.priceTotal,
+      priceBreakdown: o.priceBreakdown,
+      duration: o.duration,
+      comment: o.comment,
+      client: { name: o.clientName, phone: o.clientPhone },
+      timeline: [
+        { id: "t1", label: "Заказ принят", time: o.acceptedAt ?? "", completed: true },
+        { id: "t2", label: "Еду к клиенту", time: "", completed: false },
+        { id: "t3", label: "Работа выполняется", time: "", completed: false },
+        { id: "t4", label: "Завершено", time: "", completed: false },
+      ],
+    }));
+
     if (profile) {
       set((s) => ({
         profile,
         availableOrders: enrichWithDistance([...s.availableOrders], profile),
+        activeOrders: restoredActiveOrders,
         isHydrated: true,
       }));
     } else {
-      set({ isHydrated: true });
+      set({ activeOrders: restoredActiveOrders, isHydrated: true });
     }
     if (balanceData) {
       set({ balance: balanceData.balance, pendingBalance: balanceData.pendingBalance });
@@ -122,13 +148,13 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
     const { profile } = get();
 
     const performerInfo = {
-      id: profile.id,
-      name: profile.name,
-      phone: profile.phone,
-      telegram: profile.telegram,
-      rating: profile.rating,
-      avatar: profile.avatar,
-      jobsCompleted: profile.completedOrders,
+      id: profile.id || useAuthStore.getState().user?.id || "",
+      name: profile.name || "Исполнитель",
+      phone: profile.phone || "",
+      telegram: profile.telegram || "",
+      rating: profile.rating || 0,
+      avatar: profile.avatar || "",
+      jobsCompleted: profile.completedOrders || 0,
     };
 
     // DB is the authority — atomically claim the order

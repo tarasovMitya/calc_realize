@@ -344,7 +344,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     const { orderFlowStatus, activeSharedOrderId } = get();
     // Guard: only apply if still in searching state and IDs match
     if (orderFlowStatus !== "searching" || activeSharedOrderId !== sharedOrder.id) return;
-    if (!sharedOrder.performerName) return;
+    if (sharedOrder.status !== "performer_assigned") return;
 
     const assignedAt = new Date().toISOString();
     const assignedTime = new Date().toLocaleTimeString("ru-RU", {
@@ -362,8 +362,8 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
               assignedAt,
               performer: {
                 id: sharedOrder.performerId ?? "",
-                name: sharedOrder.performerName!,
-                avatar: sharedOrder.performerAvatar ?? sharedOrder.performerName!.slice(0, 2).toUpperCase(),
+                name: sharedOrder.performerName || "Исполнитель",
+                avatar: sharedOrder.performerAvatar || (sharedOrder.performerName || "И").slice(0, 2).toUpperCase(),
                 rating: sharedOrder.performerRating ?? 0,
                 reviewCount: sharedOrder.performerJobsCompleted ?? 0,
                 phone: sharedOrder.performerPhone ?? "",

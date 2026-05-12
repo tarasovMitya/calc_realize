@@ -7,10 +7,14 @@ interface PerformerCardProps {
 }
 
 export function PerformerCard({ performer, showPhone = false }: PerformerCardProps) {
+  const initials = performer.name
+    ? performer.name.slice(0, 2).toUpperCase()
+    : "МС";
+
   return (
     <div className="flex items-center gap-4">
       <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-sm font-semibold text-gray-600 shrink-0">
-        {performer.avatar}
+        {initials}
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-gray-900">{performer.name}</p>
