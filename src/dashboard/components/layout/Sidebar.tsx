@@ -1,4 +1,4 @@
-import { NavLink, Link, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   ClipboardList,
@@ -77,13 +77,6 @@ export function Sidebar() {
       </nav>
 
       <div className="mt-6 px-2 flex flex-col gap-3">
-        <Link
-          to="/performer"
-          className="flex items-center justify-center gap-2 w-full py-2 rounded-xl border border-gray-200 text-xs font-semibold text-gray-500 hover:border-gray-400 hover:text-gray-800 transition-all"
-        >
-          <Zap size={13} />
-          Режим исполнителя
-        </Link>
         <div className="flex items-center gap-3 py-1">
           <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-semibold text-gray-600">
             {initials}

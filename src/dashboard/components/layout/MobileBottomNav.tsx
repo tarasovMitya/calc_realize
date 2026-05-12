@@ -1,5 +1,5 @@
-import { NavLink, Link } from "react-router-dom";
-import { LayoutDashboard, ClipboardList, Clock, Bell, User, Zap } from "lucide-react";
+import { NavLink } from "react-router-dom";
+import { LayoutDashboard, ClipboardList, Clock, Bell, User } from "lucide-react";
 import { useDashboardStore } from "../../store/dashboardStore";
 
 const navItems = [
@@ -43,13 +43,6 @@ export function MobileBottomNav() {
             )}
           </NavLink>
         ))}
-        <Link
-          to="/performer"
-          className="flex-1 flex flex-col items-center gap-1 py-3 text-[10px] font-medium text-gray-400 hover:text-gray-700 transition-colors"
-        >
-          <Zap size={20} strokeWidth={1.5} />
-          <span>Про</span>
-        </Link>
       </div>
     </nav>
   );

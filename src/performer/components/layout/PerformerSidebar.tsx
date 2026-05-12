@@ -1,4 +1,4 @@
-import { NavLink, Link } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   ClipboardList,
@@ -7,8 +7,10 @@ import {
   Calendar,
   Bell,
   User,
+  LogOut,
 } from "lucide-react";
 import { usePerformerStore } from "../../store/performerStore";
+import { useAuthStore } from "../../../store/authStore";
 
 const nav = [
   { to: "/performer", label: "Главная", icon: LayoutDashboard, end: true },
@@ -23,6 +25,13 @@ const nav = [
 export function PerformerSidebar() {
   const { profile, isOnline, availableOrders, notifications } = usePerformerStore();
   const unreadCount = notifications.filter((n) => !n.read).length;
+  const { signOut } = useAuthStore();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/performer/auth", { replace: true });
+  };
 
   return (
     <aside className="hidden lg:flex flex-col w-60 min-h-screen border-r border-gray-100 bg-white shrink-0">
@@ -37,33 +46,28 @@ export function PerformerSidebar() {
       {/* Performer info */}
       <div className="px-4 py-4 border-b border-gray-50">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-600 shrink-0">
-            {profile.avatar}
+          <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-600 shrink-0 overflow-hidden">
+            {profile.avatar.startsWith("data:") || profile.avatar.startsWith("http") ? (
+              <img src={profile.avatar} alt="avatar" className="w-full h-full object-cover" />
+            ) : (
+              <span>{profile.avatar || profile.name.slice(0, 2).toUpperCase() || "?"}</span>
+            )}
           </div>
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate">{profile.name}</p>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-gray-900 truncate">{profile.name || "Исполнитель"}</p>
             <div className="flex items-center gap-1.5 mt-0.5">
               <div className={`w-1.5 h-1.5 rounded-full ${isOnline ? "bg-green-500" : "bg-gray-300"}`} />
               <span className="text-xs text-gray-400">{isOnline ? "Онлайн" : "Офлайн"}</span>
             </div>
           </div>
+          <button
+            onClick={handleSignOut}
+            title="Выйти"
+            className="text-gray-400 hover:text-gray-700 transition-colors shrink-0"
+          >
+            <LogOut size={16} />
+          </button>
         </div>
-      </div>
-
-      {/* Navigation */}
-      <div className="px-4 py-3 border-b border-gray-50 flex flex-col gap-2">
-        <Link
-          to="/performer/onboarding"
-          className="flex items-center justify-center gap-2 w-full py-2 rounded-xl bg-black text-white text-xs font-semibold hover:bg-gray-800 transition-all"
-        >
-          + Новая регистрация
-        </Link>
-        <Link
-          to="/dashboard"
-          className="flex items-center justify-center gap-2 w-full py-2 rounded-xl border border-gray-200 text-xs font-semibold text-gray-500 hover:border-gray-400 hover:text-gray-800 transition-all"
-        >
-          ← Кабинет клиента
-        </Link>
       </div>
 
       <nav className="flex-1 px-3 py-4 flex flex-col gap-0.5">

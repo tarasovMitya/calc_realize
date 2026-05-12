@@ -1,6 +1,7 @@
-import { NavLink, Link } from "react-router-dom";
-import { LayoutDashboard, ClipboardList, Zap, Wallet, User, ArrowLeft } from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { LayoutDashboard, ClipboardList, Zap, Wallet, User, LogOut } from "lucide-react";
 import { usePerformerStore } from "../../store/performerStore";
+import { useAuthStore } from "../../../store/authStore";
 
 const nav = [
   { to: "/performer", label: "Главная", icon: LayoutDashboard, end: true },
@@ -12,18 +13,17 @@ const nav = [
 
 export function MobilePerformerNav() {
   const { availableOrders } = usePerformerStore();
+  const { signOut } = useAuthStore();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/performer/auth", { replace: true });
+  };
 
   return (
     <nav className="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 z-40">
       <div className="flex items-center justify-around px-2 py-2">
-        <Link
-          to="/dashboard"
-          className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl text-gray-400 hover:text-gray-700 transition-all"
-        >
-          <ArrowLeft size={20} />
-          <span className="text-[10px] font-medium">Клиент</span>
-        </Link>
-
         {nav.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
@@ -46,6 +46,14 @@ export function MobilePerformerNav() {
             <span className="text-[10px] font-medium">{label}</span>
           </NavLink>
         ))}
+
+        <button
+          onClick={handleSignOut}
+          className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl text-gray-400 hover:text-gray-700 transition-all"
+        >
+          <LogOut size={20} />
+          <span className="text-[10px] font-medium">Выход</span>
+        </button>
       </div>
     </nav>
   );
