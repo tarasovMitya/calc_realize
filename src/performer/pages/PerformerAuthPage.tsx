@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { Wrench } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { useAuthStore } from "../../store/authStore";
+import { dbLoadPerformerProfile } from "../../lib/db";
 
 type SubStep = "email" | "otp";
 
@@ -38,7 +39,15 @@ export function PerformerAuthPage() {
       if (user.user_metadata.performer_onboarded) {
         navigate("/performer", { replace: true });
       } else {
-        navigate("/performer/onboarding", { replace: true });
+        // Fallback: check DB profile
+        dbLoadPerformerProfile(user.id).then((profile) => {
+          if (profile?.name) {
+            supabase.auth.updateUser({ data: { performer_role: true, performer_onboarded: true } });
+            navigate("/performer", { replace: true });
+          } else {
+            navigate("/performer/onboarding", { replace: true });
+          }
+        });
       }
     }
   }, [isAuthenticated, isLoading, user]);
@@ -106,7 +115,14 @@ export function PerformerAuthPage() {
     if (freshUser?.user_metadata?.performer_onboarded) {
       navigate("/performer", { replace: true });
     } else {
-      navigate("/performer/onboarding", { replace: true });
+      // Fallback: check if profile exists in DB (user may have onboarded before the flag was introduced)
+      const existingProfile = await dbLoadPerformerProfile(freshUser?.id ?? "");
+      if (existingProfile?.name) {
+        await supabase.auth.updateUser({ data: { performer_role: true, performer_onboarded: true } });
+        navigate("/performer", { replace: true });
+      } else {
+        navigate("/performer/onboarding", { replace: true });
+      }
     }
   };
 
