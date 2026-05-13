@@ -43,7 +43,7 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="hidden lg:flex flex-col w-60 shrink-0 border-r border-gray-100 min-h-screen sticky top-0 pt-8 pb-6 px-4">
+    <aside className="hidden lg:flex flex-col w-60 shrink-0 border-r border-gray-100 h-screen overflow-y-auto sticky top-0 pt-8 pb-6 px-4">
       <div className="flex items-center gap-2 px-2 mb-10">
         <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
           <Zap size={16} className="text-white" fill="white" />
