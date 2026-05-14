@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock, Calendar, Clock, MapPin } from "lucide-react";
+import { Lock, Calendar, Clock, MapPin, X } from "lucide-react";
 import { useDashboardStore } from "../store/dashboardStore";
 import { formatPrice } from "../../utils/priceCalculator";
 
 export function PaymentModal() {
-  const { pendingOrder, paymentStatus, startPayment, completePayment } = useDashboardStore();
+  const { pendingOrder, paymentStatus, startPayment, completePayment, dismissPayment } = useDashboardStore();
   const [cardNumber] = useState("•••• •••• •••• 4242");
 
   if (!pendingOrder || paymentStatus === "paid") return null;
@@ -36,6 +36,7 @@ export function PaymentModal() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
+            onClick={!isProcessing ? dismissPayment : undefined}
           />
 
           {/* Modal */}
@@ -70,9 +71,16 @@ export function PaymentModal() {
 
               {/* Header */}
               <div className="px-6 pt-6 pb-4 border-b border-gray-50">
-                <div className="flex items-center gap-2 mb-1">
-                  <Lock size={13} className="text-gray-400" />
-                  <span className="text-xs font-medium text-gray-400">Безопасная оплата</span>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2">
+                    <Lock size={13} className="text-gray-400" />
+                    <span className="text-xs font-medium text-gray-400">Безопасная оплата</span>
+                  </div>
+                  {!isProcessing && (
+                    <button onClick={dismissPayment} className="text-gray-400 hover:text-gray-600 transition-colors p-1 -mr-1">
+                      <X size={18} />
+                    </button>
+                  )}
                 </div>
                 <h2 className="text-xl font-bold text-gray-900">Оплата заказа</h2>
               </div>
