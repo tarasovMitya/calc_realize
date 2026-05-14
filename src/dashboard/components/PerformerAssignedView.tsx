@@ -16,7 +16,7 @@ export function PerformerAssignedView() {
   const displayName = (performer.name || "").trim() || "Исполнитель";
   const initials = displayName.slice(0, 2).toUpperCase();
   const avatarText = (performer.avatar || "").trim();
-  const isPhotoUrl = avatarText.startsWith("http");
+  const isPhotoUrl = avatarText.startsWith("http") || avatarText.startsWith("data:");
   const showImg = isPhotoUrl && !imgFailed;
 
   return (
