@@ -5,10 +5,26 @@ import { useDashboardStore } from "../store/dashboardStore";
 import { ActiveOrderCard } from "../components/cards/ActiveOrderCard";
 import { SearchingOrderCard } from "../components/cards/SearchingOrderCard";
 import { EmptyState } from "../components/ui/EmptyState";
+import { OrderCardSkeleton } from "../components/ui/SkeletonLoader";
 
 export function ActiveOrdersPage() {
-  const { orders, cancelOrder } = useDashboardStore();
+  const { orders, cancelOrder, isHydrated } = useDashboardStore();
   const activeOrders = orders.filter((o) => !["completed", "cancelled"].includes(o.status));
+
+  if (!isHydrated) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 pt-8 pb-10">
+        <div className="mb-8">
+          <div className="h-8 w-48 bg-gray-100 rounded-xl animate-pulse" />
+        </div>
+        <div className="flex flex-col gap-3">
+          <OrderCardSkeleton />
+          <OrderCardSkeleton />
+          <OrderCardSkeleton />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto px-4 pt-8 pb-10">

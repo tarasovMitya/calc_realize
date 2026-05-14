@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, Plus, RotateCcw, ClipboardList, LogOut } from "lucide-react";
@@ -18,7 +17,7 @@ import { PerformerAssignedView } from "../components/PerformerAssignedView";
 export function DashboardPage() {
   const navigate = useNavigate();
   const {
-    orders, isLoading, simulateLoading, addresses,
+    orders, isHydrated, addresses,
     orderFlowStatus, cancelOrder,
   } = useDashboardStore();
   const { setSkipAuth, setContacts } = useCalculatorStore();
@@ -27,10 +26,6 @@ export function DashboardPage() {
   const displayName = user?.user_metadata?.full_name as string | undefined
     ?? user?.email?.split("@")[0]
     ?? "Гость";
-
-  useEffect(() => {
-    simulateLoading(600);
-  }, []);
 
   const handleNewOrder = () => {
     const defaultAddress = addresses.find((a) => a.isDefault);
@@ -61,7 +56,7 @@ export function DashboardPage() {
   const greeting =
     hour < 12 ? "Доброе утро" : hour < 18 ? "Добрый день" : "Добрый вечер";
 
-  if (isLoading) return <DashboardSkeleton />;
+  if (!isHydrated) return <DashboardSkeleton />;
 
   if (orderFlowStatus === "searching") return <SearchingPerformerView />;
   if (orderFlowStatus === "assigned") return <PerformerAssignedView />;
