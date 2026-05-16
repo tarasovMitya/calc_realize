@@ -6,6 +6,7 @@ import { supabase } from "../../lib/supabase";
 import { useCalculatorStore } from "../../store/calculatorStore";
 import { useAuthStore } from "../../store/authStore";
 import { useDashboardStore } from "../../dashboard/store/dashboardStore";
+import { AddressSuggest } from "../ui/AddressSuggest";
 
 type SubStep = "email" | "otp" | "profile";
 
@@ -60,6 +61,7 @@ export function AuthStep() {
     defaultAddr ? defaultAddr.id : addresses.length === 0 ? "new" : null
   );
   const [newAddressValue, setNewAddressValue] = useState("");
+  const [newAddressValidated, setNewAddressValidated] = useState(false);
   const [saveNewAddress, setSaveNewAddress] = useState(false);
   const [addressError, setAddressError] = useState("");
   const [locating, setLocating] = useState(false);
@@ -82,6 +84,7 @@ export function AuthStep() {
           const house = addr.house_number || "";
           const streetPart = house ? `${street}, ${house}` : street;
           setNewAddressValue(city ? `${streetPart}, ${city}` : streetPart);
+          setNewAddressValidated(true);
           setAddressError("");
         } catch {
           // leave field as-is if reverse geocode fails
@@ -175,6 +178,11 @@ export function AuthStep() {
 
     if (!resolvedAddress) {
       setAddressError("Введите или выберите адрес");
+      return;
+    }
+
+    if (selectedAddressId === "new" && !newAddressValidated) {
+      setAddressError("Выберите адрес из подсказок Яндекса");
       return;
     }
 
@@ -461,13 +469,14 @@ export function AuthStep() {
                       )}
                       {locating ? "Определяем местоположение..." : "Использовать текущую геопозицию"}
                     </button>
-                    <input
+                    <AddressSuggest
                       value={newAddressValue}
-                      onChange={(e) => { setNewAddressValue(e.target.value); setAddressError(""); }}
-                      placeholder="Улица, дом, квартира"
-                      className={`w-full px-5 py-4 rounded-2xl border-2 text-lg outline-none transition-colors ${
-                        addressError ? "border-red-400" : "border-gray-100 focus:border-black"
-                      }`}
+                      onChange={(val, validated) => {
+                        setNewAddressValue(val);
+                        setNewAddressValidated(validated);
+                        if (val) setAddressError("");
+                      }}
+                      error={!!addressError}
                     />
                     <label className="flex items-center gap-2 text-sm text-gray-500 cursor-pointer px-1">
                       <input
