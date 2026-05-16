@@ -9,6 +9,7 @@ import { Timeline } from "../components/ui/Timeline";
 import { PerformerCard } from "../components/ui/PerformerCard";
 import { CompletionConfirmBlock } from "../components/CompletionConfirmBlock";
 import { DisputeModal } from "../components/DisputeModal";
+import { RatingModal } from "../components/RatingModal";
 import { formatPrice } from "../../utils/priceCalculator";
 
 const CANCELLABLE_STATUSES = new Set([
@@ -23,10 +24,11 @@ const CANCELLABLE_STATUSES = new Set([
 export function OrderDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { orders, confirmOrderCompletion, openDispute, resumePayment, cancelOrder } = useDashboardStore();
+  const { orders, confirmOrderCompletion, submitClientRating, openDispute, resumePayment, cancelOrder } = useDashboardStore();
   const order = orders.find((o) => o.id === id);
   const [showDisputeModal, setShowDisputeModal] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
 
   const handleCancel = () => {
     cancelOrder(order!.id);
@@ -131,7 +133,7 @@ export function OrderDetailsPage() {
           <CompletionConfirmBlock
             comment={order.completionComment}
             completionTime={order.completionRequestedAt}
-            onConfirm={async () => { await confirmOrderCompletion(order.id); }}
+            onConfirm={async () => { await confirmOrderCompletion(order.id); setShowRatingModal(true); }}
             onDispute={() => setShowDisputeModal(true)}
           />
         )}
@@ -214,6 +216,16 @@ export function OrderDetailsPage() {
         onClose={() => setShowDisputeModal(false)}
         onSubmit={async (comment) => { await openDispute(order.id, comment); }}
       />
+      {showRatingModal && order.performer && !order.clientRating && (
+        <RatingModal
+          performerName={order.performer.name}
+          onSubmit={async (rating, comment) => {
+            await submitClientRating(order.id, order.performer!.id, rating, comment);
+            setShowRatingModal(false);
+          }}
+          onSkip={() => setShowRatingModal(false)}
+        />
+      )}
     </motion.div>
   );
 }

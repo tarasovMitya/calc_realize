@@ -20,6 +20,7 @@ import {
   dbUpdateOrder,
   dbAcceptSharedOrder,
   dbLoadPerformerActiveOrders,
+  dbLoadPerformerCompletedOrders,
   dbRequestOrderCompletion,
   dbUpdateSharedOrderStatus,
   dbUpdatePerformerLocation,
@@ -52,6 +53,7 @@ interface PerformerState {
   submitCompletion: (orderId: string, comment: string) => Promise<void>;
   onClientConfirmed: (orderId: string) => void;
   onClientCancelled: (orderId: string) => void;
+  addNotification: (n: Omit<PerformerNotification, "id" | "read" | "time">) => void;
   startLocationTracking: (orderId: string) => Promise<boolean>;
   stopLocationTracking: () => void;
   markNotificationRead: (id: string) => void;
@@ -110,10 +112,11 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
   isHydrated: false,
 
   hydratePerformer: async (userId) => {
-    const [profile, balanceData, sharedActiveOrders] = await Promise.all([
+    const [profile, balanceData, sharedActiveOrders, sharedCompletedOrders] = await Promise.all([
       dbLoadPerformerProfile(userId),
       dbLoadPerformerBalance(userId),
       dbLoadPerformerActiveOrders(userId),
+      dbLoadPerformerCompletedOrders(userId),
     ]);
 
     const restoredActiveOrders: PerformerOrder[] = sharedActiveOrders.map((o) => {
@@ -149,15 +152,52 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
       };
     });
 
+    const restoredCompletedOrders: PerformerOrder[] = sharedCompletedOrders.map((o) => ({
+      id: o.id,
+      createdAt: o.createdAt,
+      scheduledDate: o.scheduledDate,
+      scheduledTime: o.scheduledTime,
+      status: (o.status === "cancelled" ? "cancelled" : "completed") as PerformerOrderStatus,
+      categoryName: o.categoryName,
+      serviceName: o.serviceName,
+      address: o.address,
+      priceTotal: o.priceTotal,
+      priceBreakdown: o.priceBreakdown,
+      duration: o.duration,
+      comment: o.comment,
+      completionComment: o.completionComment,
+      completionRequestedAt: o.completionRequestedAt,
+      client: { name: o.clientName, phone: o.clientPhone },
+      timeline: [
+        { id: "t1", label: "Заказ принят", time: o.acceptedAt ?? "", completed: true },
+        { id: "t2", label: "Еду к клиенту", time: "", completed: true },
+        { id: "t3", label: "Работа выполняется", time: "", completed: true },
+        { id: "t4", label: "Завершено", time: o.clientConfirmedAt ? new Date(o.clientConfirmedAt).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" }) : "", completed: o.status === "completed" },
+      ],
+    }));
+
+    const restoredEarnings: EarningsRecord[] = sharedCompletedOrders
+      .filter((o) => o.status === "completed" && o.clientConfirmedAt)
+      .map((o) => ({
+        id: `e-${o.id}`,
+        orderId: o.id,
+        serviceName: o.serviceName,
+        amount: o.priceTotal,
+        date: new Date(o.clientConfirmedAt!).toISOString().split("T")[0],
+        time: new Date(o.clientConfirmedAt!).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" }),
+      }));
+
     if (profile) {
       set((s) => ({
         profile,
         availableOrders: enrichWithDistance([...s.availableOrders], profile),
         activeOrders: restoredActiveOrders,
+        completedOrders: restoredCompletedOrders,
+        earnings: restoredEarnings,
         isHydrated: true,
       }));
     } else {
-      set({ activeOrders: restoredActiveOrders, isHydrated: true });
+      set({ activeOrders: restoredActiveOrders, completedOrders: restoredCompletedOrders, earnings: restoredEarnings, isHydrated: true });
     }
     if (balanceData) {
       set({ balance: balanceData.balance, pendingBalance: balanceData.pendingBalance });
@@ -310,6 +350,7 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
         profile: { ...s.profile, completedOrders: newCompleted },
       };
     });
+    get().addNotification({ type: "payment", title: "Клиент подтвердил выполнение", body: "Выплата доступна для вывода", orderId });
   },
 
   onClientCancelled: (orderId) => {
@@ -326,6 +367,13 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
         pendingBalance: newPendingBalance,
       };
     });
+    get().addNotification({ type: "cancellation", title: "Заказ отменён клиентом", body: "Клиент отменил заказ", orderId });
+  },
+
+  addNotification: (n) => {
+    const id = `pnotif-${Date.now()}-${Math.random()}`;
+    const time = new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+    set((s) => ({ notifications: [{ ...n, id, time, read: false }, ...s.notifications] }));
   },
 
   updateOrderStatus: (orderId, status) => {

@@ -168,6 +168,8 @@ function rowToOrder(r: Record<string, unknown>): Order {
     timeline: (r.timeline as Order["timeline"]) ?? [],
     completionComment: (r.completion_comment as string) ?? null,
     completionRequestedAt: (r.completion_requested_at as string) ?? null,
+    clientRating: (r.client_rating as number) ?? null,
+    clientReview: (r.client_review as string) ?? null,
   };
 }
 
@@ -265,6 +267,8 @@ function rowToSharedOrder(r: Record<string, unknown>): SharedOrder {
     performerLat: (r.performer_lat as number) ?? null,
     performerLng: (r.performer_lng as number) ?? null,
     performerLastSeen: (r.performer_last_seen as string) ?? null,
+    clientRating: (r.client_rating as number) ?? null,
+    clientReview: (r.client_review as string) ?? null,
   };
 }
 
@@ -427,6 +431,124 @@ export async function dbUpdatePerformerLocation(orderId: string, lat: number, ln
       updated_at: new Date().toISOString(),
     })
     .eq("id", orderId);
+}
+
+// ─── Reviews ──────────────────────────────────────────────────────────────────
+
+export async function dbCreateReview(
+  orderId: string,
+  clientId: string,
+  performerId: string,
+  rating: number,
+  comment: string
+): Promise<boolean> {
+  const { error } = await supabase.from("reviews").insert({
+    order_id: orderId,
+    client_id: clientId,
+    performer_id: performerId,
+    rating,
+    comment,
+  });
+  if (error) return false;
+  // Also store rating on the order itself for quick reads
+  await supabase.from("shared_orders")
+    .update({ client_rating: rating, client_review: comment })
+    .eq("id", orderId)
+    .then(() => {}, () => {});
+  await dbUpdateOrder(orderId, { client_rating: rating, client_review: comment });
+  return true;
+}
+
+export async function dbLoadPerformerCompletedOrders(performerId: string): Promise<SharedOrder[]> {
+  const { data } = await supabase
+    .from("shared_orders")
+    .select("*")
+    .eq("performer_id", performerId)
+    .in("status", ["completed", "cancelled"])
+    .order("created_at", { ascending: false });
+  if (!data) return [];
+  return data.map(rowToSharedOrder);
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+export interface DBNotification {
+  id: string;
+  type: string;
+  title: string;
+  body: string;
+  orderId?: string;
+  read: boolean;
+  createdAt: string;
+}
+
+export async function dbLoadNotifications(userId: string): Promise<DBNotification[]> {
+  const { data } = await supabase
+    .from("notifications")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(50);
+  if (!data) return [];
+  return data.map((r) => ({
+    id: r.id as string,
+    type: r.type as string,
+    title: r.title as string,
+    body: r.body as string,
+    orderId: (r.order_id as string) ?? undefined,
+    read: r.read as boolean,
+    createdAt: r.created_at as string,
+  }));
+}
+
+export async function dbCreateNotification(
+  userId: string,
+  type: string,
+  title: string,
+  body: string,
+  orderId?: string
+): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("notifications")
+    .insert({ user_id: userId, type, title, body, order_id: orderId ?? null })
+    .select("id")
+    .single();
+  if (error || !data) return null;
+  return data.id as string;
+}
+
+export async function dbMarkNotificationRead(id: string): Promise<void> {
+  await supabase.from("notifications").update({ read: true }).eq("id", id);
+}
+
+export async function dbMarkAllNotificationsRead(userId: string): Promise<void> {
+  await supabase.from("notifications").update({ read: false }).eq("user_id", userId);
+}
+
+export async function dbSubscribeNotifications(
+  userId: string,
+  onNew: (n: DBNotification) => void
+): Promise<() => void> {
+  const channel = supabase
+    .channel(`notifications_${userId}`)
+    .on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${userId}` },
+      (payload) => {
+        const r = payload.new as Record<string, unknown>;
+        onNew({
+          id: r.id as string,
+          type: r.type as string,
+          title: r.title as string,
+          body: r.body as string,
+          orderId: (r.order_id as string) ?? undefined,
+          read: false,
+          createdAt: r.created_at as string,
+        });
+      }
+    )
+    .subscribe();
+  return () => { supabase.removeChannel(channel); };
 }
 
 export async function dbOpenDispute(orderId: string, comment: string): Promise<void> {

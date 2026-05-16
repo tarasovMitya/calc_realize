@@ -10,13 +10,21 @@ import type { SharedOrder } from "../../../store/sharedOrdersStore";
 
 export function DashboardLayout() {
   const { user } = useAuthStore();
-  const { hydrateClient, isHydrated, orders, applyPerformerFromSharedOrder, applyCompletionRequest, applyPerformerOnTheWay, applyLocationUpdate, applyOrderStatusFromShared } = useDashboardStore();
+  const { hydrateClient, hydrateNotifications, subscribeNotifications, isHydrated, orders, applyPerformerFromSharedOrder, applyCompletionRequest, applyPerformerOnTheWay, applyLocationUpdate, applyOrderStatusFromShared } = useDashboardStore();
   const { updateOrder: updateSharedOrder } = useSharedOrdersStore();
 
   useEffect(() => {
     if (user?.id && !isHydrated) {
       hydrateClient(user.id);
     }
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    hydrateNotifications(user.id);
+    let unsub: (() => void) | undefined;
+    subscribeNotifications(user.id).then((fn) => { unsub = fn; });
+    return () => { unsub?.(); };
   }, [user?.id]);
 
   // IDs of orders that need live updates

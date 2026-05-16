@@ -55,6 +55,10 @@ export interface SharedOrder {
   performerLng?: number | null;
   performerLastSeen?: string | null;
 
+  // Client review
+  clientRating?: number | null;
+  clientReview?: string | null;
+
   // Future: geo filtering
   lat?: number;
   lng?: number;

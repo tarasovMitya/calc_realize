@@ -29,6 +29,12 @@ import {
   dbGetSharedOrder,
   dbConfirmOrderCompletion,
   dbOpenDispute,
+  dbCreateReview,
+  dbLoadNotifications,
+  dbCreateNotification,
+  dbMarkNotificationRead,
+  dbMarkAllNotificationsRead,
+  dbSubscribeNotifications,
 } from "../../lib/db";
 
 interface DashboardState {
@@ -77,6 +83,14 @@ interface DashboardState {
   resumePayment: (orderId: string) => void;
   dismissPayment: () => void;
   resetOrderFlow: () => void;
+
+  // --- Notifications ---
+  hydrateNotifications: (userId: string) => Promise<void>;
+  subscribeNotifications: (userId: string) => Promise<() => void>;
+  addNotification: (n: Omit<Notification, "id" | "read" | "time">, persist?: { userId: string; orderId?: string }) => void;
+
+  // --- Reviews ---
+  submitClientRating: (orderId: string, performerId: string, rating: number, comment: string) => Promise<void>;
 }
 
 const emptyProfile: UserProfile = {
@@ -250,17 +264,64 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     });
   },
 
-  markNotificationRead: (id) =>
-    set((s) => ({
-      notifications: s.notifications.map((n) =>
-        n.id === id ? { ...n, read: true } : n
-      ),
-    })),
+  markNotificationRead: (id) => {
+    set((s) => ({ notifications: s.notifications.map((n) => n.id === id ? { ...n, read: true } : n) }));
+    dbMarkNotificationRead(id);
+  },
 
-  markAllRead: () =>
+  markAllRead: () => {
+    set((s) => ({ notifications: s.notifications.map((n) => ({ ...n, read: true })) }));
+    const userId = useAuthStore.getState().user?.id;
+    if (userId) dbMarkAllNotificationsRead(userId);
+  },
+
+  hydrateNotifications: async (userId) => {
+    const records = await dbLoadNotifications(userId);
+    const notifications: Notification[] = records.map((r) => ({
+      id: r.id,
+      type: (r.type as Notification["type"]) ?? "status",
+      title: r.title,
+      body: r.body,
+      time: new Date(r.createdAt).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" }),
+      read: r.read,
+      orderId: r.orderId,
+    }));
+    set((s) => ({ notifications: [...notifications, ...s.notifications.filter((n) => !records.some((r) => r.id === n.id))] }));
+  },
+
+  subscribeNotifications: async (userId) => {
+    return dbSubscribeNotifications(userId, (r) => {
+      const n: Notification = {
+        id: r.id,
+        type: (r.type as Notification["type"]) ?? "status",
+        title: r.title,
+        body: r.body,
+        time: new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" }),
+        read: false,
+        orderId: r.orderId,
+      };
+      set((s) => ({ notifications: [n, ...s.notifications] }));
+    });
+  },
+
+  addNotification: (n, persist) => {
+    const id = `notif-${Date.now()}-${Math.random()}`;
+    const time = new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+    const notification = { ...n, id, time, read: false } satisfies import("../types").Notification;
+    set((s) => ({ notifications: [notification, ...s.notifications] }));
+    if (persist?.userId) {
+      dbCreateNotification(persist.userId, n.type, n.title, n.body, persist.orderId);
+    }
+  },
+
+  submitClientRating: async (orderId, performerId, rating, comment) => {
+    const userId = useAuthStore.getState().user?.id;
+    if (!userId) return;
+    await dbCreateReview(orderId, userId, performerId, rating, comment);
     set((s) => ({
-      notifications: s.notifications.map((n) => ({ ...n, read: true })),
-    })),
+      orders: s.orders.map((o) => o.id === orderId ? { ...o, clientRating: rating, clientReview: comment } : o),
+    }));
+  },
 
   setDefaultAddress: (id) => {
     set((s) => ({
@@ -524,6 +585,10 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
         performer_avatar: sharedOrder.performerAvatar ?? null,
         performer_jobs_completed: sharedOrder.performerJobsCompleted ?? null,
       });
+      get().addNotification(
+        { type: "performer", title: "Исполнитель найден", body: `${perfName} принял ваш заказ`, orderId: sharedOrder.id },
+        { userId, orderId: sharedOrder.id }
+      );
     }
   },
 
@@ -540,6 +605,13 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
           : o
       ),
     }));
+    const userId = useAuthStore.getState().user?.id;
+    if (userId) {
+      get().addNotification(
+        { type: "completed", title: "Требуется подтверждение", body: "Исполнитель завершил работу — подтвердите выполнение", orderId: sharedOrder.id },
+        { userId, orderId: sharedOrder.id }
+      );
+    }
   },
 
   applyPerformerOnTheWay: (sharedOrder) => {
@@ -556,6 +628,13 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
           : o
       ),
     }));
+    const userId = useAuthStore.getState().user?.id;
+    if (userId) {
+      get().addNotification(
+        { type: "status", title: "Исполнитель в пути", body: "Исполнитель едет к вам", orderId: sharedOrder.id },
+        { userId, orderId: sharedOrder.id }
+      );
+    }
   },
 
   applyLocationUpdate: (orderId, lat, lng, lastSeen) => {
@@ -572,6 +651,20 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     set((s) => ({
       orders: s.orders.map((o) => (o.id === orderId ? { ...o, status } : o)),
     }));
+    const userId = useAuthStore.getState().user?.id;
+    if (userId) {
+      if (status === "in_progress") {
+        get().addNotification(
+          { type: "status", title: "Работа началась", body: "Исполнитель приступил к выполнению заказа", orderId },
+          { userId, orderId }
+        );
+      } else if (status === "cancelled") {
+        get().addNotification(
+          { type: "status", title: "Заказ отменён", body: "Ваш заказ был отменён", orderId },
+          { userId, orderId }
+        );
+      }
+    }
   },
 
   confirmOrderCompletion: async (orderId) => {

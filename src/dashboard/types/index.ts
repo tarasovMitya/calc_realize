@@ -50,6 +50,8 @@ export interface Order {
   performerLat?: number | null;
   performerLng?: number | null;
   performerLastSeen?: string | null;
+  clientRating?: number | null;
+  clientReview?: string | null;
 }
 
 export interface TimelineEvent {

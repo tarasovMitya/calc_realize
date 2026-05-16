@@ -9,7 +9,7 @@ import { dbSubscribeSharedOrderUpdates, dbGetSharedOrder, dbLoadSearchingOrders,
 
 export function PerformerLayout() {
   const { user } = useAuthStore();
-  const { hydratePerformer, isHydrated, activeOrders, onClientConfirmed, onClientCancelled } = usePerformerStore();
+  const { hydratePerformer, isHydrated, activeOrders, onClientConfirmed, onClientCancelled, addNotification } = usePerformerStore();
   const { addOrder, updateOrder } = useSharedOrdersStore();
 
   useEffect(() => {
@@ -21,7 +21,10 @@ export function PerformerLayout() {
   // Load available orders once and keep them live for the dashboard badge
   useEffect(() => {
     dbLoadSearchingOrders().then((orders) => orders.forEach(addOrder));
-    const unsubInsert = dbSubscribeSharedOrders(addOrder);
+    const unsubInsert = dbSubscribeSharedOrders((order) => {
+      addOrder(order);
+      addNotification({ type: "new_order", title: "Новый заказ", body: `${order.serviceName} · ${order.address}`, orderId: order.id });
+    });
     // Also handle UPDATEs so taken orders are removed from the available list
     const unsubUpdate = dbSubscribeSharedOrderUpdates("__all__", updateOrder);
     return () => { unsubInsert(); unsubUpdate(); };
