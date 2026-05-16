@@ -80,12 +80,14 @@ export function AddressSection() {
             {RADIUS_OPTIONS.map((r) => (
               <button
                 key={r}
-                onClick={() => editing && setForm((p) => ({ ...p, workRadius: r }))}
-                disabled={!editing}
+                onClick={() => {
+                  setForm((p) => ({ ...p, workRadius: r }));
+                  updateProfile({ workRadius: r });
+                }}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                   (editing ? form.workRadius : profile.workRadius) === r
                     ? "bg-black text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200 disabled:hover:bg-gray-100"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
               >
                 {r} км
