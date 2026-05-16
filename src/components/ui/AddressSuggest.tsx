@@ -16,6 +16,54 @@ interface AddressSuggestProps {
   error?: boolean;
 }
 
+/** Strip trailing house-number token so Nominatim can match at street level */
+function stripHouseNumber(query: string): string {
+  return query.replace(/[\s,]+\d+\s*[а-яёА-ЯЁa-zA-Z\d]*\s*$/, "").trim();
+}
+
+/** Trim verbose suffix after "Москва" for Nominatim results */
+function trimAddress(display: string): string {
+  const parts = display.split(", ");
+  const idx = parts.findIndex((p) => p === "Москва");
+  return idx !== -1 ? parts.slice(0, idx + 1).join(", ") : parts.slice(0, 5).join(", ");
+}
+
+async function fetchDadata(query: string, signal: AbortSignal): Promise<string[]> {
+  const res = await fetch(
+    "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address",
+    {
+      method: "POST",
+      signal,
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": `Token ${DADATA_KEY}`,
+      },
+      body: JSON.stringify({ query, count: 7, locations: [{ city: "Москва" }] }),
+    }
+  );
+  if (!res.ok) throw new Error(`dadata ${res.status}`);
+  const data = await res.json() as { suggestions?: DadataSuggestion[] };
+  if (!data.suggestions) throw new Error("no suggestions field");
+  return data.suggestions.map((s) => s.value).filter(Boolean);
+}
+
+async function fetchNominatim(query: string, signal: AbortSignal): Promise<string[]> {
+  const searchQuery = stripHouseNumber(query) || query;
+  const q = /москва/i.test(searchQuery) ? searchQuery : `${searchQuery}, Москва`;
+  const url = new URL("https://nominatim.openstreetmap.org/search");
+  url.searchParams.set("format", "json");
+  url.searchParams.set("q", q);
+  url.searchParams.set("limit", "7");
+  url.searchParams.set("accept-language", "ru");
+  url.searchParams.set("countrycodes", "ru");
+  url.searchParams.set("addressdetails", "0");
+  const res = await fetch(url.toString(), { signal });
+  const data = await res.json() as { display_name: string }[];
+  const names = data.map((r) => trimAddress(r.display_name)).filter(Boolean);
+  return [...new Set(names)];
+}
+
 export function AddressSuggest({
   value,
   onChange,
@@ -56,26 +104,19 @@ export function AddressSuggest({
       abortRef.current = controller;
 
       try {
-        const res = await fetch(
-          "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address",
-          {
-            method: "POST",
-            signal: controller.signal,
-            headers: {
-              "Content-Type": "application/json",
-              "Accept": "application/json",
-              "Authorization": `Token ${DADATA_KEY}`,
-            },
-            body: JSON.stringify({
-              query,
-              count: 7,
-              locations: [{ city: "Москва" }],
-            }),
-          }
-        );
+        let names: string[] = [];
 
-        const data = await res.json() as { suggestions: DadataSuggestion[] };
-        const names = data.suggestions.map((s) => s.value).filter(Boolean);
+        if (DADATA_KEY) {
+          try {
+            names = await fetchDadata(query, controller.signal);
+          } catch {
+            // DaData unavailable or not yet activated — fall back to Nominatim
+            names = await fetchNominatim(query, controller.signal);
+          }
+        } else {
+          names = await fetchNominatim(query, controller.signal);
+        }
+
         setSuggestions(names);
         setOpen(names.length > 0);
       } catch {
