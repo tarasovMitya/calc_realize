@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useDashboardStore } from "../store/dashboardStore";
 import { useAuthStore } from "../../store/authStore";
 import { supabase } from "../../lib/supabase";
+import { AddressSuggest } from "../../components/ui/AddressSuggest";
 import type { UserProfile } from "../types";
 
 type ProfileFormData = Pick<UserProfile, "name" | "phone" | "email" | "address">;
@@ -260,11 +261,13 @@ function AddressesSection() {
   const { addresses, addAddress, deleteAddress, setDefaultAddress } = useDashboardStore();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ label: "", street: "", city: "Москва" });
+  const [streetValidated, setStreetValidated] = useState(false);
 
   const handleAdd = () => {
-    if (!form.street.trim()) return;
+    if (!form.street.trim() || !streetValidated) return;
     addAddress({ label: form.label || "Адрес", street: form.street.trim(), city: form.city || "Москва", isDefault: addresses.length === 0 });
     setForm({ label: "", street: "", city: "Москва" });
+    setStreetValidated(false);
     setShowForm(false);
   };
 
@@ -335,11 +338,14 @@ function AddressesSection() {
             onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
             className="w-full px-3 py-2.5 rounded-xl border border-gray-100 text-sm outline-none focus:border-gray-300 transition-colors"
           />
-          <input
-            placeholder="Улица, дом, квартира"
+          <AddressSuggest
             value={form.street}
-            onChange={(e) => setForm((f) => ({ ...f, street: e.target.value }))}
-            className="w-full px-3 py-2.5 rounded-xl border border-gray-100 text-sm outline-none focus:border-gray-300 transition-colors"
+            onChange={(val, validated) => {
+              setForm((f) => ({ ...f, street: val }));
+              setStreetValidated(validated);
+            }}
+            placeholder="Улица, дом, квартира"
+            inputClassName="w-full px-3 py-2.5 rounded-xl border border-gray-100 text-sm outline-none focus:border-gray-300 transition-colors pr-10"
           />
           <input
             placeholder="Город"
@@ -358,7 +364,7 @@ function AddressesSection() {
             <button
               type="button"
               onClick={handleAdd}
-              disabled={!form.street.trim()}
+              disabled={!form.street.trim() || !streetValidated}
               className="flex-1 py-2.5 rounded-xl bg-black text-white text-sm font-semibold disabled:opacity-40 hover:bg-gray-800 transition-all"
             >
               Сохранить
