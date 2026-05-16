@@ -56,11 +56,14 @@ export function AddressSuggest({
       try {
         const url = new URL("https://nominatim.openstreetmap.org/search");
         url.searchParams.set("format", "json");
-        url.searchParams.set("q", query);
+        url.searchParams.set("q", `${query}, Москва`);
         url.searchParams.set("limit", "6");
         url.searchParams.set("accept-language", "ru");
         url.searchParams.set("countrycodes", "ru");
         url.searchParams.set("addressdetails", "0");
+        // Bounding box for Moscow
+        url.searchParams.set("viewbox", "37.29,55.96,37.97,55.49");
+        url.searchParams.set("bounded", "1");
 
         const res = await fetch(url.toString(), {
           signal: controller.signal,
@@ -68,7 +71,14 @@ export function AddressSuggest({
         });
         const data = await res.json() as NominatimResult[];
 
-        const names = data.map((r) => r.display_name).filter(Boolean);
+        const names = data
+          .map((r) => {
+            // Strip verbose suffix after "Москва" — keep only street + district + city
+            const parts = r.display_name.split(", ");
+            const moscowIdx = parts.findIndex((p) => p === "Москва");
+            return moscowIdx !== -1 ? parts.slice(0, moscowIdx + 1).join(", ") : parts.slice(0, 4).join(", ");
+          })
+          .filter(Boolean);
         setSuggestions(names);
         setOpen(names.length > 0);
       } catch {
