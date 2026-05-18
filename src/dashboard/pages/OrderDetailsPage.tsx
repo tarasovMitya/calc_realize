@@ -16,7 +16,7 @@ import { RatingModal } from "../components/RatingModal";
 import { formatPrice } from "../../utils/priceCalculator";
 
 const CHAT_VISIBLE_STATUSES = new Set([
-  "performer_assigned",
+  "assigned",
   "on_the_way",
   "in_progress",
   "waiting_client_confirmation",
