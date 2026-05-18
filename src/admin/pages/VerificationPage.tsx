@@ -1,29 +1,78 @@
 import { useEffect, useState } from "react";
-import { ShieldCheck, Star, MapPin, Phone, MessageCircle } from "lucide-react";
+import { ShieldCheck, Star, MapPin, Phone, MessageCircle, X, Image } from "lucide-react";
 import { useAdminStore } from "../store/adminStore";
 import type { AdminPerformer } from "../types";
 import { supabase } from "../../lib/supabase";
+import { trackEvent } from "../../lib/analytics";
+
+interface VerificationRequest {
+  first_name: string | null; last_name: string | null; birth_date: string | null;
+  phone: string | null; telegram: string | null; city: string | null;
+  passport_url: string | null; selfie_url: string | null;
+  specializations: string[] | null; experience_years: number | null;
+  experience_description: string | null; has_tools: boolean | null;
+  works_with_team: boolean | null; work_photo_urls: string[] | null;
+  payment_name: string | null; payment_card: string | null;
+  payment_bank: string | null; submitted_at: string | null;
+}
 
 export function AdminVerificationPage() {
   const { performers, isLoadingPerformers, loadPerformers } = useAdminStore();
   const [selected, setSelected] = useState<AdminPerformer | null>(null);
+  const [verRequest, setVerRequest] = useState<VerificationRequest | null>(null);
+  const [loadingRequest, setLoadingRequest] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [rejectModal, setRejectModal] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
 
   useEffect(() => { loadPerformers(); }, []);
 
-  const queue = performers.filter((p) => p.verificationStatus === "pending");
+  const queue    = performers.filter((p) => p.verificationStatus === "pending");
   const approved = performers.filter((p) => p.verificationStatus === "approved");
   const rejected = performers.filter((p) => p.verificationStatus === "rejected");
+  const notStarted = performers.filter((p) => !["pending", "approved", "rejected"].includes(p.verificationStatus));
 
-  async function setVerification(performerId: string, status: "approved" | "rejected") {
-    setActionLoading(performerId + status);
-    await supabase
-      .from("performer_profiles")
-      .update({ verification_status: status })
+  async function loadRequest(performerId: string) {
+    setLoadingRequest(true);
+    setVerRequest(null);
+    const { data } = await supabase
+      .from("verification_requests")
+      .select("*")
+      .eq("performer_id", performerId)
+      .single();
+    setVerRequest(data as VerificationRequest ?? null);
+    setLoadingRequest(false);
+  }
+
+  function selectPerformer(p: AdminPerformer) {
+    if (selected?.id === p.id) { setSelected(null); setVerRequest(null); return; }
+    setSelected(p);
+    loadRequest(p.id);
+  }
+
+  async function approve(performerId: string) {
+    setActionLoading(performerId + "approved");
+    await supabase.from("performer_profiles")
+      .update({ verification_status: "approved", rejection_reason: null })
       .eq("user_id", performerId);
+    trackEvent("verification_approved");
     await loadPerformers();
     setActionLoading(null);
     setSelected(null);
+  }
+
+  async function reject(performerId: string) {
+    if (!rejectReason.trim()) return;
+    setActionLoading(performerId + "rejected");
+    await supabase.from("performer_profiles")
+      .update({ verification_status: "rejected", rejection_reason: rejectReason.trim() })
+      .eq("user_id", performerId);
+    trackEvent("verification_rejected");
+    await loadPerformers();
+    setActionLoading(null);
+    setSelected(null);
+    setRejectModal(false);
+    setRejectReason("");
   }
 
   return (
@@ -34,10 +83,10 @@ export function AdminVerificationPage() {
       </div>
 
       {/* Status counts */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-4 gap-4 mb-6">
         <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-center">
           <p className="text-2xl font-bold text-yellow-700">{queue.length}</p>
-          <p className="text-xs font-semibold text-yellow-600 mt-0.5">Ожидают проверки</p>
+          <p className="text-xs font-semibold text-yellow-600 mt-0.5">На проверке</p>
         </div>
         <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
           <p className="text-2xl font-bold text-green-700">{approved.length}</p>
@@ -47,115 +96,64 @@ export function AdminVerificationPage() {
           <p className="text-2xl font-bold text-red-700">{rejected.length}</p>
           <p className="text-xs font-semibold text-red-600 mt-0.5">Отклонено</p>
         </div>
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-center">
+          <p className="text-2xl font-bold text-gray-600">{notStarted.length}</p>
+          <p className="text-xs font-semibold text-gray-500 mt-0.5">Не заполнено</p>
+        </div>
       </div>
 
       <div className="flex gap-4">
         {/* Queue */}
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           {isLoadingPerformers ? (
             <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-sm text-gray-400">Загрузка...</div>
           ) : (
             <>
-              {/* Pending */}
               {queue.length > 0 && (
-                <div className="bg-white rounded-xl border border-yellow-200 mb-4 overflow-hidden">
-                  <div className="px-5 py-4 border-b border-yellow-100 flex items-center gap-2">
-                    <ShieldCheck size={15} className="text-yellow-600" />
-                    <p className="text-sm font-semibold text-gray-900">На проверке</p>
-                  </div>
-                  <div className="divide-y divide-gray-50">
-                    {queue.map((p) => (
-                      <PerformerRow
-                        key={p.id}
-                        performer={p}
-                        selected={selected?.id === p.id}
-                        onClick={() => setSelected(p.id === selected?.id ? null : p)}
-                        actions={
-                          <div className="flex gap-1.5">
-                            <button
-                              disabled={actionLoading === p.id + "approved"}
-                              onClick={(e) => { e.stopPropagation(); setVerification(p.id, "approved"); }}
-                              className="px-2.5 py-1 bg-green-50 text-green-700 rounded text-xs font-medium hover:bg-green-100 transition-colors disabled:opacity-50"
-                            >
-                              {actionLoading === p.id + "approved" ? "..." : "Одобрить"}
-                            </button>
-                            <button
-                              disabled={actionLoading === p.id + "rejected"}
-                              onClick={(e) => { e.stopPropagation(); setVerification(p.id, "rejected"); }}
-                              className="px-2.5 py-1 bg-red-50 text-red-600 rounded text-xs font-medium hover:bg-red-100 transition-colors disabled:opacity-50"
-                            >
-                              {actionLoading === p.id + "rejected" ? "..." : "Отклонить"}
-                            </button>
-                          </div>
-                        }
-                      />
-                    ))}
-                  </div>
-                </div>
+                <Section title="На проверке" icon={<ShieldCheck size={14} className="text-yellow-600" />} border="border-yellow-200">
+                  {queue.map((p) => (
+                    <PerformerRow key={p.id} performer={p} selected={selected?.id === p.id} onClick={() => selectPerformer(p)}
+                      actions={
+                        <div className="flex gap-1.5">
+                          <ActionBtn label="Одобрить" loading={actionLoading === p.id + "approved"} color="green"
+                            onClick={(e) => { e.stopPropagation(); approve(p.id); }} />
+                          <ActionBtn label="Отклонить" loading={actionLoading === p.id + "rejected"} color="red"
+                            onClick={(e) => { e.stopPropagation(); setSelected(p); setRejectModal(true); }} />
+                        </div>
+                      }
+                    />
+                  ))}
+                </Section>
               )}
 
-              {/* Approved */}
               {approved.length > 0 && (
-                <div className="bg-white rounded-xl border border-gray-200 mb-4 overflow-hidden">
-                  <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
-                    <ShieldCheck size={15} className="text-green-600" />
-                    <p className="text-sm font-semibold text-gray-900">Одобренные</p>
-                  </div>
-                  <div className="divide-y divide-gray-50">
-                    {approved.map((p) => (
-                      <PerformerRow
-                        key={p.id}
-                        performer={p}
-                        selected={selected?.id === p.id}
-                        onClick={() => setSelected(p.id === selected?.id ? null : p)}
-                        actions={
-                          <button
-                            disabled={actionLoading === p.id + "rejected"}
-                            onClick={(e) => { e.stopPropagation(); setVerification(p.id, "rejected"); }}
-                            className="px-2.5 py-1 bg-red-50 text-red-600 rounded text-xs font-medium hover:bg-red-100 transition-colors disabled:opacity-50"
-                          >
-                            Отклонить
-                          </button>
-                        }
-                      />
-                    ))}
-                  </div>
-                </div>
+                <Section title="Одобренные" icon={<ShieldCheck size={14} className="text-green-600" />} border="border-gray-200">
+                  {approved.map((p) => (
+                    <PerformerRow key={p.id} performer={p} selected={selected?.id === p.id} onClick={() => selectPerformer(p)}
+                      actions={
+                        <ActionBtn label="Отклонить" loading={actionLoading === p.id + "rejected"} color="red"
+                          onClick={(e) => { e.stopPropagation(); setSelected(p); setRejectModal(true); }} />
+                      }
+                    />
+                  ))}
+                </Section>
               )}
 
-              {/* Rejected */}
               {rejected.length > 0 && (
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                  <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
-                    <ShieldCheck size={15} className="text-red-500" />
-                    <p className="text-sm font-semibold text-gray-900">Отклонённые</p>
-                  </div>
-                  <div className="divide-y divide-gray-50">
-                    {rejected.map((p) => (
-                      <PerformerRow
-                        key={p.id}
-                        performer={p}
-                        selected={selected?.id === p.id}
-                        onClick={() => setSelected(p.id === selected?.id ? null : p)}
-                        actions={
-                          <button
-                            disabled={actionLoading === p.id + "approved"}
-                            onClick={(e) => { e.stopPropagation(); setVerification(p.id, "approved"); }}
-                            className="px-2.5 py-1 bg-green-50 text-green-700 rounded text-xs font-medium hover:bg-green-100 transition-colors disabled:opacity-50"
-                          >
-                            Одобрить
-                          </button>
-                        }
-                      />
-                    ))}
-                  </div>
-                </div>
+                <Section title="Отклонённые" icon={<ShieldCheck size={14} className="text-red-500" />} border="border-gray-200">
+                  {rejected.map((p) => (
+                    <PerformerRow key={p.id} performer={p} selected={selected?.id === p.id} onClick={() => selectPerformer(p)}
+                      actions={
+                        <ActionBtn label="Одобрить" loading={actionLoading === p.id + "approved"} color="green"
+                          onClick={(e) => { e.stopPropagation(); approve(p.id); }} />
+                      }
+                    />
+                  ))}
+                </Section>
               )}
 
               {performers.length === 0 && (
-                <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-sm text-gray-400">
-                  Нет исполнителей
-                </div>
+                <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-sm text-gray-400">Нет исполнителей</div>
               )}
             </>
           )}
@@ -163,107 +161,232 @@ export function AdminVerificationPage() {
 
         {/* Detail panel */}
         {selected && (
-          <div className="w-72 shrink-0 bg-white rounded-xl border border-gray-200 p-4 self-start space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold text-gray-900">Профиль</p>
-              <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-600 text-lg leading-none">×</button>
+          <div className="w-80 shrink-0 bg-white rounded-xl border border-gray-200 self-start space-y-0 overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+              <p className="text-sm font-semibold text-gray-900">Анкета исполнителя</p>
+              <button onClick={() => { setSelected(null); setVerRequest(null); }} className="text-gray-400 hover:text-gray-600">
+                <X size={16} />
+              </button>
             </div>
 
-            <div className="space-y-3 text-sm">
-              <p className="text-base font-bold text-gray-900">{selected.name}</p>
-              <div className="flex items-center gap-1.5 text-amber-500">
-                <Star size={13} fill="currentColor" />
-                <span className="font-semibold">{selected.rating.toFixed(1)}</span>
-                <span className="text-gray-400 text-xs">· {selected.completedOrders} заказов</span>
+            <div className="p-4 space-y-4 max-h-[80vh] overflow-y-auto">
+              {/* Profile header */}
+              <div>
+                <p className="text-base font-bold text-gray-900">{selected.name}</p>
+                <div className="flex items-center gap-1.5 mt-1 text-amber-500">
+                  <Star size={12} fill="currentColor" />
+                  <span className="text-xs font-semibold">{selected.rating.toFixed(1)}</span>
+                  <span className="text-xs text-gray-400">· {selected.completedOrders} заказов</span>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2 text-xs text-gray-500">
+                  {selected.phone && <span className="flex items-center gap-1"><Phone size={11} />{selected.phone}</span>}
+                  {selected.telegram && <span className="flex items-center gap-1"><MessageCircle size={11} />{selected.telegram}</span>}
+                  {selected.city && <span className="flex items-center gap-1"><MapPin size={11} />{selected.city}</span>}
+                </div>
               </div>
 
-              {selected.phone && (
-                <div className="flex items-center gap-1.5 text-gray-600">
-                  <Phone size={13} />
-                  <span>{selected.phone}</span>
-                </div>
-              )}
-              {selected.telegram && (
-                <div className="flex items-center gap-1.5 text-gray-600">
-                  <MessageCircle size={13} />
-                  <span>{selected.telegram}</span>
-                </div>
-              )}
-              {selected.city && (
-                <div className="flex items-center gap-1.5 text-gray-600">
-                  <MapPin size={13} />
-                  <span>{selected.city} · {selected.workRadius} км</span>
-                </div>
-              )}
-              {selected.address && (
-                <div>
-                  <p className="text-xs text-gray-400 mb-0.5">Адрес</p>
-                  <p className="text-gray-700">{selected.address}</p>
-                </div>
-              )}
-              {selected.specializations.length > 0 && (
-                <div>
-                  <p className="text-xs text-gray-400 mb-1">Специализации</p>
-                  <div className="flex flex-wrap gap-1">
-                    {selected.specializations.map((s) => (
-                      <span key={s} className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs">{s}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {selected.createdAt && (
-                <div>
-                  <p className="text-xs text-gray-400">Дата регистрации</p>
-                  <p className="text-gray-700">{new Date(selected.createdAt).toLocaleDateString("ru-RU")}</p>
-                </div>
-              )}
-            </div>
+              {loadingRequest ? (
+                <div className="py-6 text-center text-sm text-gray-400">Загрузка анкеты...</div>
+              ) : verRequest ? (
+                <>
+                  {/* Personal */}
+                  <DetailSection title="Личные данные">
+                    <Row label="Имя" value={[verRequest.first_name, verRequest.last_name].filter(Boolean).join(" ")} />
+                    <Row label="Дата рождения" value={verRequest.birth_date} />
+                    <Row label="Телефон" value={verRequest.phone} />
+                    <Row label="Telegram" value={verRequest.telegram} />
+                    <Row label="Город" value={verRequest.city} />
+                  </DetailSection>
 
-            <div className="space-y-2 pt-1">
-              {selected.verificationStatus !== "approved" && (
-                <button
-                  disabled={!!actionLoading}
-                  onClick={() => setVerification(selected.id, "approved")}
-                  className="w-full px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors disabled:opacity-50"
-                >
-                  Одобрить
-                </button>
+                  {/* Documents */}
+                  {(verRequest.passport_url || verRequest.selfie_url) && (
+                    <DetailSection title="Документы">
+                      <div className="grid grid-cols-2 gap-2">
+                        {verRequest.passport_url && (
+                          <a href={verRequest.passport_url} target="_blank" rel="noopener noreferrer">
+                            <img src={verRequest.passport_url} alt="Паспорт" className="w-full aspect-video object-cover rounded-lg border border-gray-200 hover:opacity-90" />
+                            <p className="text-xs text-gray-400 mt-1 text-center">Паспорт</p>
+                          </a>
+                        )}
+                        {verRequest.selfie_url && (
+                          <a href={verRequest.selfie_url} target="_blank" rel="noopener noreferrer">
+                            <img src={verRequest.selfie_url} alt="Селфи" className="w-full aspect-video object-cover rounded-lg border border-gray-200 hover:opacity-90" />
+                            <p className="text-xs text-gray-400 mt-1 text-center">Селфи</p>
+                          </a>
+                        )}
+                      </div>
+                      {!verRequest.passport_url && !verRequest.selfie_url && (
+                        <p className="text-xs text-gray-400">Документы не загружены</p>
+                      )}
+                    </DetailSection>
+                  )}
+
+                  {/* Professional */}
+                  <DetailSection title="Опыт">
+                    {verRequest.specializations && verRequest.specializations.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        {verRequest.specializations.map(s => (
+                          <span key={s} className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs">{s}</span>
+                        ))}
+                      </div>
+                    )}
+                    <Row label="Опыт" value={verRequest.experience_years ? `${verRequest.experience_years} лет` : null} />
+                    {verRequest.experience_description && (
+                      <p className="text-xs text-gray-600 bg-gray-50 rounded p-2">{verRequest.experience_description}</p>
+                    )}
+                    <Row label="Инструменты" value={verRequest.has_tools ? "Есть" : "Нет"} />
+                    <Row label="Команда" value={verRequest.works_with_team ? "Работает с командой" : "Работает один"} />
+                  </DetailSection>
+
+                  {/* Work photos */}
+                  {(verRequest.work_photo_urls?.length ?? 0) > 0 && (
+                    <DetailSection title={`Фото работ (${verRequest.work_photo_urls!.length})`}>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {verRequest.work_photo_urls!.map((url, i) => (
+                          <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                            <img src={url} alt="" className="w-full aspect-square object-cover rounded-lg border border-gray-100 hover:opacity-90" />
+                          </a>
+                        ))}
+                      </div>
+                    </DetailSection>
+                  )}
+
+                  {/* Payment */}
+                  <DetailSection title="Платёжные данные">
+                    <Row label="ФИО" value={verRequest.payment_name} />
+                    <Row label="Карта" value={verRequest.payment_card} />
+                    <Row label="Банк" value={verRequest.payment_bank} />
+                  </DetailSection>
+
+                  {verRequest.submitted_at && (
+                    <p className="text-xs text-gray-400 text-center">
+                      Подано {new Date(verRequest.submitted_at).toLocaleString("ru-RU")}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <div className="py-4 flex flex-col items-center gap-2 text-center">
+                  <Image size={24} className="text-gray-200" />
+                  <p className="text-xs text-gray-400">Исполнитель не заполнил анкету верификации</p>
+                </div>
               )}
-              {selected.verificationStatus !== "rejected" && (
-                <button
-                  disabled={!!actionLoading}
-                  onClick={() => setVerification(selected.id, "rejected")}
-                  className="w-full px-3 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors disabled:opacity-50"
-                >
-                  Отклонить
-                </button>
-              )}
+
+              {/* Actions */}
+              <div className="space-y-2 pt-2 border-t border-gray-100">
+                {selected.verificationStatus !== "approved" && (
+                  <button disabled={!!actionLoading} onClick={() => approve(selected.id)}
+                    className="w-full px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors disabled:opacity-50">
+                    Одобрить
+                  </button>
+                )}
+                {selected.verificationStatus !== "rejected" && (
+                  <button disabled={!!actionLoading} onClick={() => setRejectModal(true)}
+                    className="w-full px-3 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors disabled:opacity-50">
+                    Отклонить
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}
       </div>
+
+      {/* Reject reason modal */}
+      {rejectModal && selected && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-base font-bold text-gray-900">Причина отклонения</p>
+              <button onClick={() => { setRejectModal(false); setRejectReason(""); }} className="text-gray-400 hover:text-gray-600">
+                <X size={18} />
+              </button>
+            </div>
+            <p className="text-sm text-gray-500 mb-3">Укажите причину — исполнитель её увидит и сможет исправить</p>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {["Нечитаемый документ", "Плохое качество фото", "Данные не совпадают", "Неполная анкета", "Недостаточно фото работ"].map(r => (
+                <button key={r} onClick={() => setRejectReason(r)}
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${rejectReason === r ? "bg-red-600 text-white border-red-600" : "border-gray-200 text-gray-600 hover:border-red-300"}`}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+            <textarea
+              value={rejectReason}
+              onChange={e => setRejectReason(e.target.value)}
+              rows={3}
+              placeholder="Или введите произвольную причину..."
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-red-200 mb-4"
+            />
+            <div className="flex gap-2">
+              <button onClick={() => { setRejectModal(false); setRejectReason(""); }}
+                className="flex-1 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">
+                Отмена
+              </button>
+              <button onClick={() => reject(selected.id)} disabled={!rejectReason.trim() || !!actionLoading}
+                className="flex-1 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50 transition-colors">
+                {actionLoading ? "..." : "Отклонить"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-function PerformerRow({
-  performer, selected, onClick, actions,
-}: {
-  performer: AdminPerformer;
-  selected: boolean;
-  onClick: () => void;
-  actions: React.ReactNode;
+function Section({ title, icon, border, children }: { title: string; icon: React.ReactNode; border: string; children: React.ReactNode }) {
+  return (
+    <div className={`bg-white rounded-xl border ${border} mb-4 overflow-hidden`}>
+      <div className={`px-5 py-3 border-b border-gray-100 flex items-center gap-2`}>
+        {icon}
+        <p className="text-sm font-semibold text-gray-900">{title}</p>
+      </div>
+      <div className="divide-y divide-gray-50">{children}</div>
+    </div>
+  );
+}
+
+function PerformerRow({ performer, selected, onClick, actions }: {
+  performer: AdminPerformer; selected: boolean; onClick: () => void; actions: React.ReactNode;
 }) {
   return (
-    <div
-      onClick={onClick}
-      className={`flex items-center justify-between px-5 py-3 hover:bg-gray-50 transition-colors cursor-pointer ${selected ? "bg-blue-50" : ""}`}
-    >
+    <div onClick={onClick} className={`flex items-center justify-between px-5 py-3 hover:bg-gray-50 transition-colors cursor-pointer ${selected ? "bg-blue-50" : ""}`}>
       <div>
         <p className="text-sm font-medium text-gray-900">{performer.name}</p>
         <p className="text-xs text-gray-400 mt-0.5">{performer.city || "—"} · {performer.completedOrders} заказов</p>
       </div>
       {actions}
+    </div>
+  );
+}
+
+function ActionBtn({ label, loading, color, onClick }: { label: string; loading: boolean; color: "green" | "red"; onClick: (e: React.MouseEvent) => void }) {
+  const cls = color === "green"
+    ? "bg-green-50 text-green-700 hover:bg-green-100"
+    : "bg-red-50 text-red-600 hover:bg-red-100";
+  return (
+    <button disabled={loading} onClick={onClick} className={`px-2.5 py-1 rounded text-xs font-medium transition-colors disabled:opacity-50 ${cls}`}>
+      {loading ? "..." : label}
+    </button>
+  );
+}
+
+function DetailSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{title}</p>
+      <div className="space-y-1.5">{children}</div>
+    </div>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string | null | undefined }) {
+  if (!value) return null;
+  return (
+    <div className="flex items-start justify-between gap-2">
+      <span className="text-xs text-gray-400 shrink-0">{label}</span>
+      <span className="text-xs text-gray-700 text-right">{value}</span>
     </div>
   );
 }

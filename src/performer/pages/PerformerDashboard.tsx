@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Star, TrendingUp, CheckCircle, ClipboardList } from "lucide-react";
 import { usePerformerStore } from "../store/performerStore";
 import { useSharedOrdersStore } from "../../store/sharedOrdersStore";
+import { VerificationGate } from "../verification/VerificationGate";
 import { AvailabilityToggle } from "../components/ui/AvailabilityToggle";
 import { PerformerActiveOrderCard } from "../components/cards/ActiveOrderCard";
 import { formatPrice, pluralRu } from "../../utils/priceCalculator";
@@ -46,17 +47,7 @@ export function PerformerDashboard() {
         </div>
       </motion.div>
 
-      {/* Online toggle */}
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.05 }}
-        className="mb-6"
-      >
-        <AvailabilityToggle />
-      </motion.div>
-
-      {/* Stats */}
+      {/* Stats always visible */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -87,62 +78,58 @@ export function PerformerDashboard() {
         </div>
       </motion.div>
 
-      {/* Available orders alert */}
-      {isOnline && availableCount > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.13 }}
-          className="mb-6"
-        >
-          <Link
-            to="/performer/available"
-            className="flex items-center justify-between p-4 bg-amber-50 border border-amber-200 rounded-2xl hover:bg-amber-100 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-amber-500 flex items-center justify-center">
-                <ClipboardList size={16} className="text-white" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-amber-900">
-                  {availableCount} {pluralRu(availableCount, "новый заказ", "новых заказа", "новых заказов")} рядом
-                </p>
-                <p className="text-xs text-amber-700 mt-0.5">Нажмите, чтобы принять</p>
-              </div>
-            </div>
-            <ArrowRight size={16} className="text-amber-600" />
-          </Link>
+      {/* Orders section — gated by verification */}
+      <VerificationGate>
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="mb-6">
+          <AvailabilityToggle />
         </motion.div>
-      )}
 
-      {/* Active orders */}
-      <section>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-base font-semibold text-gray-900">Активные заказы</h2>
-          {activeOrders.length > 0 && (
+        {isOnline && availableCount > 0 && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.13 }} className="mb-6">
             <Link
-              to="/performer/active"
-              className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-700 transition-colors"
+              to="/performer/available"
+              className="flex items-center justify-between p-4 bg-amber-50 border border-amber-200 rounded-2xl hover:bg-amber-100 transition-colors"
             >
-              Все <ArrowRight size={14} />
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-amber-500 flex items-center justify-center">
+                  <ClipboardList size={16} className="text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-amber-900">
+                    {availableCount} {pluralRu(availableCount, "новый заказ", "новых заказа", "новых заказов")} рядом
+                  </p>
+                  <p className="text-xs text-amber-700 mt-0.5">Нажмите, чтобы принять</p>
+                </div>
+              </div>
+              <ArrowRight size={16} className="text-amber-600" />
             </Link>
-          )}
-        </div>
-
-        {activeOrders.length === 0 ? (
-          <div className="py-10 flex flex-col items-center gap-2 text-center">
-            <CheckCircle size={28} className="text-gray-200" />
-            <p className="text-sm font-medium text-gray-400">Нет активных заказов</p>
-            <p className="text-xs text-gray-300">Примите новый заказ из списка</p>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-3">
-            {activeOrders.slice(0, 2).map((order) => (
-              <PerformerActiveOrderCard key={order.id} order={order} />
-            ))}
-          </div>
+          </motion.div>
         )}
-      </section>
+
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-semibold text-gray-900">Активные заказы</h2>
+            {activeOrders.length > 0 && (
+              <Link to="/performer/active" className="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-700 transition-colors">
+                Все <ArrowRight size={14} />
+              </Link>
+            )}
+          </div>
+          {activeOrders.length === 0 ? (
+            <div className="py-10 flex flex-col items-center gap-2 text-center">
+              <CheckCircle size={28} className="text-gray-200" />
+              <p className="text-sm font-medium text-gray-400">Нет активных заказов</p>
+              <p className="text-xs text-gray-300">Примите новый заказ из списка</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {activeOrders.slice(0, 2).map((order) => (
+                <PerformerActiveOrderCard key={order.id} order={order} />
+              ))}
+            </div>
+          )}
+        </section>
+      </VerificationGate>
     </div>
   );
 }

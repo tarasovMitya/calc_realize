@@ -28,6 +28,7 @@ import { PerformerProfilePage } from "./performer/pages/ProfilePage";
 import { PerformerNotificationsPage } from "./performer/pages/NotificationsPage";
 import { PerformerOnboarding } from "./performer/onboarding/PerformerOnboarding";
 import { PerformerAuthPage } from "./performer/pages/PerformerAuthPage";
+import { PerformerVerificationPage } from "./performer/pages/VerificationPage";
 import { PerformerGuard } from "./performer/components/PerformerGuard";
 import { AdminGuard } from "./admin/components/AdminGuard";
 import { AdminLayout } from "./admin/components/layout/AdminLayout";
@@ -93,6 +94,11 @@ function App() {
 
         {/* Performer auth */}
         <Route path="/performer/auth" element={<PerformerAuthPage />} />
+
+        {/* Performer verification — requires auth + performer role but NOT verified */}
+        <Route element={<PerformerGuard />}>
+          <Route path="/performer/verification" element={<PerformerVerificationPage />} />
+        </Route>
 
         {/* Performer onboarding — public, auth happens at the end */}
         <Route path="/performer/onboarding" element={<PerformerOnboarding />} />

@@ -12,6 +12,7 @@ import { useSharedOrdersStore } from "../../store/sharedOrdersStore";
 import type { AcceptResult } from "../../store/sharedOrdersStore";
 import { calculateDistance, estimateETA, formatDistance } from "../utils/distance";
 import { useAuthStore } from "../../store/authStore";
+import { supabase } from "../../lib/supabase";
 import {
   dbLoadPerformerProfile,
   dbSavePerformerProfile,
@@ -32,6 +33,8 @@ let _locationLastSent = 0;
 
 interface PerformerState {
   profile: PerformerProfile;
+  verificationStatus: string;
+  rejectionReason: string | null;
   isOnline: boolean;
   balance: number;
   pendingBalance: number;
@@ -58,6 +61,7 @@ interface PerformerState {
   stopLocationTracking: () => void;
   markNotificationRead: (id: string) => void;
   markAllRead: () => void;
+  setVerificationStatus: (status: string, reason?: string | null) => void;
   updateProfile: (data: Partial<PerformerProfile>) => void;
   withdraw: (amount: number, cardId: string) => void;
   addBankCard: (card: Omit<BankCard, "id">) => void;
@@ -99,6 +103,8 @@ const emptyProfile: PerformerProfile = {
 
 export const usePerformerStore = create<PerformerState>((set, get) => ({
   profile: emptyProfile,
+  verificationStatus: "not_started",
+  rejectionReason: null,
   isOnline: true,
   balance: 0,
   pendingBalance: 0,
@@ -111,13 +117,17 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
   withdrawHistory: [],
   isHydrated: false,
 
+  setVerificationStatus: (status, reason = null) =>
+    set({ verificationStatus: status, rejectionReason: reason ?? null }),
+
   hydratePerformer: async (userId) => {
     try {
-    const [profile, balanceData, sharedActiveOrders, sharedCompletedOrders] = await Promise.all([
+    const [profile, balanceData, sharedActiveOrders, sharedCompletedOrders, verData] = await Promise.all([
       dbLoadPerformerProfile(userId),
       dbLoadPerformerBalance(userId),
       dbLoadPerformerActiveOrders(userId),
       dbLoadPerformerCompletedOrders(userId),
+      supabase.from("performer_profiles").select("verification_status, rejection_reason").eq("user_id", userId).single(),
     ]);
 
     const restoredActiveOrders: PerformerOrder[] = sharedActiveOrders.map((o) => {
@@ -199,6 +209,8 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
         completedOrders: restoredCompletedOrders,
         earnings: restoredEarnings,
         isHydrated: true,
+        verificationStatus: (verData.data?.verification_status as string) ?? "not_started",
+        rejectionReason: (verData.data?.rejection_reason as string) ?? null,
       }));
     } else {
       set({ activeOrders: restoredActiveOrders, completedOrders: restoredCompletedOrders, earnings: restoredEarnings, isHydrated: true });

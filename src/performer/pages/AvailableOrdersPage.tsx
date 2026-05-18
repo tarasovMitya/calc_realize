@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ClipboardList } from "lucide-react";
 import { usePerformerStore } from "../store/performerStore";
+import { VerificationGate } from "../verification/VerificationGate";
 import { useSharedOrdersStore } from "../../store/sharedOrdersStore";
 import { AvailableOrderCard } from "../components/cards/AvailableOrderCard";
 import { pluralRu } from "../../utils/priceCalculator";
@@ -78,6 +79,7 @@ export function AvailableOrdersPage() {
   };
 
   return (
+    <VerificationGate>
     <div className="max-w-2xl mx-auto px-4 pt-8 pb-10">
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="mb-5">
         <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Новые заказы</h1>
@@ -157,5 +159,6 @@ export function AvailableOrdersPage() {
         </AnimatePresence>
       )}
     </div>
+    </VerificationGate>
   );
 }

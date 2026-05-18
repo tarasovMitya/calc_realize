@@ -22,6 +22,9 @@ export type EventName =
   | "performer_onboarding_started" | "performer_onboarding_step"
   | "performer_registered" | "performer_verified"
   | "order_accepted" | "performer_status_changed"
+  // Verification
+  | "verification_started" | "verification_submitted"
+  | "verification_approved" | "verification_rejected"
   // Errors
   | "api_error" | "react_error" | "auth_error" | "db_error"
   | "realtime_error" | "network_error"
