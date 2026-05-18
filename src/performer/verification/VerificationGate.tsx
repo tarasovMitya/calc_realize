@@ -1,20 +1,62 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ShieldCheck, Clock, XCircle } from "lucide-react";
+import { ShieldCheck, Clock, XCircle, Loader2 } from "lucide-react";
 import { usePerformerStore } from "../store/performerStore";
+import { useAuthStore } from "../../store/authStore";
+import { supabase } from "../../lib/supabase";
 
 interface VerificationGateProps {
   children: React.ReactNode;
 }
 
 export function VerificationGate({ children }: VerificationGateProps) {
-  const { verificationStatus, rejectionReason } = usePerformerStore();
+  const { verificationStatus: storeStatus, rejectionReason: storeReason, setVerificationStatus } = usePerformerStore();
+  const { user } = useAuthStore();
   const navigate = useNavigate();
 
-  if (verificationStatus === "approved") {
+  const [status, setStatus] = useState(storeStatus);
+  const [reason, setReason] = useState(storeReason);
+  const [checking, setChecking] = useState(true);
+
+  // Always read fresh from DB on mount — store may be stale
+  useEffect(() => {
+    if (!user?.id) { setChecking(false); return; }
+    supabase
+      .from("performer_profiles")
+      .select("verification_status, rejection_reason")
+      .eq("user_id", user.id)
+      .single()
+      .then(({ data }) => {
+        const s = (data?.verification_status as string) ?? "not_started";
+        const r = (data?.rejection_reason as string) ?? null;
+        setStatus(s);
+        setReason(r);
+        setVerificationStatus(s, r);
+        setChecking(false);
+      }, () => {
+        setChecking(false);
+      });
+  }, [user?.id]);
+
+  // React to realtime updates from performerStore
+  useEffect(() => {
+    setStatus(storeStatus);
+    setReason(storeReason);
+  }, [storeStatus, storeReason]);
+
+  if (checking) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 size={24} className="text-gray-300 animate-spin" />
+      </div>
+    );
+  }
+
+  if (status === "approved") {
     return <>{children}</>;
   }
 
-  if (verificationStatus === "not_started") {
+  if (status === "not_started") {
     return (
       <div className="max-w-lg mx-auto px-4 pt-16 pb-10">
         <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-sm">
@@ -39,7 +81,7 @@ export function VerificationGate({ children }: VerificationGateProps) {
     );
   }
 
-  if (verificationStatus === "pending") {
+  if (status === "pending") {
     return (
       <div className="max-w-lg mx-auto px-4 pt-16 pb-10">
         <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-sm">
@@ -58,7 +100,7 @@ export function VerificationGate({ children }: VerificationGateProps) {
     );
   }
 
-  if (verificationStatus === "rejected") {
+  if (status === "rejected") {
     return (
       <div className="max-w-lg mx-auto px-4 pt-16 pb-10">
         <div className="bg-white border border-red-100 rounded-2xl p-8 text-center shadow-sm">
@@ -66,10 +108,10 @@ export function VerificationGate({ children }: VerificationGateProps) {
             <XCircle size={28} className="text-red-500" />
           </div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">Верификация отклонена</h2>
-          {rejectionReason && (
+          {reason && (
             <div className="bg-red-50 border border-red-100 rounded-xl p-4 mb-6 text-left">
               <p className="text-xs font-semibold text-red-500 mb-1 uppercase tracking-wider">Причина отказа</p>
-              <p className="text-sm text-red-700">{rejectionReason}</p>
+              <p className="text-sm text-red-700">{reason}</p>
             </div>
           )}
           <p className="text-sm text-gray-500 mb-6">
@@ -86,7 +128,6 @@ export function VerificationGate({ children }: VerificationGateProps) {
     );
   }
 
-  // blocked or unknown
   return (
     <div className="max-w-lg mx-auto px-4 pt-16 text-center">
       <p className="text-sm text-gray-400">Доступ к заказам ограничен. Обратитесь в поддержку.</p>
