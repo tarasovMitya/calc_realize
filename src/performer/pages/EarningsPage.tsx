@@ -1,14 +1,31 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { TrendingUp, CheckCircle, BarChart3, ArrowDownLeft } from "lucide-react";
 import { usePerformerStore } from "../store/performerStore";
+import { useAuthStore } from "../../store/authStore";
 import { formatPrice } from "../../utils/priceCalculator";
 import { BalanceCard } from "../components/ui/BalanceCard";
 import { WithdrawModal } from "../components/ui/WithdrawModal";
+import { dbGetMyPayoutRequests, type PayoutRequest } from "../../lib/payoutDb";
+
+const STATUS_LABEL: Record<PayoutRequest["status"], { text: string; cls: string }> = {
+  pending:   { text: "На рассмотрении", cls: "text-amber-500" },
+  approved:  { text: "Одобрено",        cls: "text-blue-500" },
+  completed: { text: "Выполнено",       cls: "text-green-600" },
+  rejected:  { text: "Отклонено",       cls: "text-red-500" },
+};
 
 export function EarningsPage() {
-  const { earnings, balance, pendingBalance, withdrawHistory } = usePerformerStore();
+  const { earnings, balance, pendingBalance } = usePerformerStore();
+  const { user } = useAuthStore();
   const [showWithdraw, setShowWithdraw] = useState(false);
+  const [payoutRequests, setPayoutRequests] = useState<PayoutRequest[]>([]);
+
+  useEffect(() => {
+    if (user?.id) {
+      dbGetMyPayoutRequests(user.id).then(setPayoutRequests);
+    }
+  }, [user?.id, showWithdraw]); // reload after modal closes (new request may have been created)
 
   const today = new Date().toISOString().split("T")[0];
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
@@ -99,8 +116,8 @@ export function EarningsPage() {
           </div>
         </motion.div>
 
-        {/* Withdraw history */}
-        {withdrawHistory.length > 0 && (
+        {/* Payout request history */}
+        {payoutRequests.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -109,30 +126,32 @@ export function EarningsPage() {
           >
             <h2 className="text-base font-semibold text-gray-900 mb-3">Выводы средств</h2>
             <div className="flex flex-col gap-2">
-              {withdrawHistory.map((w) => (
-                <div
-                  key={w.id}
-                  className="flex items-center gap-3 py-3 border-b border-gray-50 last:border-0"
-                >
-                  <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
-                    <ArrowDownLeft size={14} className="text-amber-600" />
+              {payoutRequests.map((req) => {
+                const s = STATUS_LABEL[req.status];
+                return (
+                  <div
+                    key={req.id}
+                    className="flex items-center gap-3 py-3 border-b border-gray-50 last:border-0"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
+                      <ArrowDownLeft size={14} className="text-amber-600" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900">
+                        Вывод на •••• {req.cardLast4}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {new Date(req.requestedAt).toLocaleDateString("ru-RU", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}
+                      </p>
+                      {req.adminNote && <p className="text-xs text-gray-400 mt-0.5">{req.adminNote}</p>}
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-gray-900">−{formatPrice(req.amount)}</p>
+                      <span className={`text-[10px] font-semibold ${s.cls}`}>{s.text}</span>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">
-                      Вывод на •••• {w.cardLast4}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      {new Date(w.date).toLocaleDateString("ru-RU", { day: "numeric", month: "long" })} · {w.time}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-gray-900">−{formatPrice(w.amount)}</p>
-                    <span className={`text-[10px] font-semibold ${w.status === "completed" ? "text-green-600" : "text-amber-500"}`}>
-                      {w.status === "completed" ? "Выполнено" : "В обработке"}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </motion.div>
         )}

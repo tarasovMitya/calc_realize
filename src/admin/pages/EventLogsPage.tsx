@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
-import { Search, AlertTriangle, Activity, Filter } from "lucide-react";
+import { Search, AlertTriangle, Activity, Filter, ShieldCheck } from "lucide-react";
 
 interface EventLog {
   id: string;
@@ -44,13 +44,24 @@ const FUNNEL_EVENTS = [
   { event: "client_confirmed_completion", label: "Подтвердили завершение" },
 ];
 
-type Tab = "events" | "errors" | "funnel";
+interface AuditLog {
+  id: number;
+  created_at: string;
+  user_id: string | null;
+  action: string;
+  resource_type: string | null;
+  resource_id: string | null;
+  details: Record<string, unknown> | null;
+}
+
+type Tab = "events" | "errors" | "funnel" | "audit";
 
 export function AdminEventLogsPage() {
   const [tab, setTab] = useState<Tab>("events");
   const [events, setEvents] = useState<EventLog[]>([]);
   const [errors, setErrors] = useState<ErrorLog[]>([]);
   const [funnelCounts, setFunnelCounts] = useState<Record<string, number>>({});
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [eventFilter, setEventFilter] = useState("all");
@@ -60,7 +71,19 @@ export function AdminEventLogsPage() {
     if (tab === "events") loadEvents();
     if (tab === "errors") loadErrors();
     if (tab === "funnel") loadFunnel();
+    if (tab === "audit") loadAudit();
   }, [tab]);
+
+  async function loadAudit() {
+    setLoading(true);
+    const { data } = await supabase
+      .from("audit_logs")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(300);
+    setAuditLogs((data as AuditLog[]) ?? []);
+    setLoading(false);
+  }
 
   async function loadEvents() {
     setLoading(true);
@@ -132,6 +155,7 @@ export function AdminEventLogsPage() {
           { id: "events", label: "События", icon: <Activity size={14} /> },
           { id: "errors", label: `Ошибки${errorEventCount > 0 ? ` (${errors.length})` : ""}`, icon: <AlertTriangle size={14} /> },
           { id: "funnel", label: "Воронка", icon: <Filter size={14} /> },
+          { id: "audit", label: "Аудит", icon: <ShieldCheck size={14} /> },
         ] as const).map((t) => (
           <button
             key={t.id}
@@ -146,7 +170,7 @@ export function AdminEventLogsPage() {
       </div>
 
       {/* Search + filter */}
-      {tab !== "funnel" && (
+      {tab !== "funnel" && tab !== "audit" && (
         <div className="flex gap-3 mb-4">
           <div className="relative flex-1 max-w-sm">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -331,6 +355,66 @@ export function AdminEventLogsPage() {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+          )}
+
+          {/* Audit tab */}
+          {tab === "audit" && (
+            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+                <p className="text-sm font-semibold text-gray-900">Журнал безопасности</p>
+                <span className="text-xs text-gray-400">{auditLogs.length} записей</span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100">
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Действие</th>
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Ресурс</th>
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Время</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {auditLogs.map((log) => (
+                      <>
+                        <tr
+                          key={log.id}
+                          onClick={() => setExpandedId(expandedId === String(log.id) ? null : String(log.id))}
+                          className="border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors"
+                        >
+                          <td className="px-4 py-2.5">
+                            <span className="text-xs font-mono font-semibold text-gray-700">{log.action}</span>
+                          </td>
+                          <td className="px-4 py-2.5 text-xs text-gray-500">{log.resource_type ?? "—"}</td>
+                          <td className="px-4 py-2.5 font-mono text-xs text-gray-400">
+                            {log.resource_id ? log.resource_id.slice(0, 8) + "…" : "—"}
+                          </td>
+                          <td className="px-4 py-2.5 font-mono text-xs text-gray-400">
+                            {log.user_id ? log.user_id.slice(0, 8) + "…" : "system"}
+                          </td>
+                          <td className="px-4 py-2.5 text-xs text-gray-400 whitespace-nowrap">
+                            {new Date(log.created_at).toLocaleString("ru-RU")}
+                          </td>
+                        </tr>
+                        {expandedId === String(log.id) && log.details && Object.keys(log.details).length > 0 && (
+                          <tr key={log.id + "_detail"} className="bg-gray-50 border-b border-gray-100">
+                            <td colSpan={5} className="px-4 py-2.5">
+                              <pre className="text-xs text-gray-600 whitespace-pre-wrap font-mono bg-gray-100 rounded p-2">
+                                {JSON.stringify(log.details, null, 2)}
+                              </pre>
+                            </td>
+                          </tr>
+                        )}
+                      </>
+                    ))}
+                    {auditLogs.length === 0 && (
+                      <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400 text-sm">Нет записей</td></tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
