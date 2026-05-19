@@ -9,8 +9,6 @@ import {
   adminUpdateOrderStatus,
   adminCancelOrder,
   adminGetUserRole,
-  adminAdjustPerformerBalance,
-  adminApprovePerformerPayout,
 } from "../lib/adminDb";
 
 interface AdminState {
@@ -38,11 +36,9 @@ interface AdminState {
 
   updateOrderStatus: (orderId: string, status: string) => Promise<void>;
   cancelOrder: (orderId: string) => Promise<void>;
-  adjustBalance: (performerId: string, delta: number) => Promise<void>;
-  approvePayout: (performerId: string) => Promise<void>;
 }
 
-export const useAdminStore = create<AdminState>((set, get) => ({
+export const useAdminStore = create<AdminState>((set) => ({
   role: null,
   isLoadingRole: true,
   stats: null,
@@ -106,17 +102,4 @@ export const useAdminStore = create<AdminState>((set, get) => ({
     }));
   },
 
-  adjustBalance: async (performerId, delta) => {
-    await adminAdjustPerformerBalance(performerId, delta);
-    await get().loadPerformers();
-  },
-
-  approvePayout: async (performerId) => {
-    await adminApprovePerformerPayout(performerId);
-    set((s) => ({
-      performers: s.performers.map((p) =>
-        p.id === performerId ? { ...p, pendingBalance: 0 } : p
-      ),
-    }));
-  },
 }));

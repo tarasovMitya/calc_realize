@@ -157,12 +157,3 @@ export async function adminLoadClients(): Promise<AdminClient[]> {
   }));
 }
 
-export async function adminAdjustPerformerBalance(performerId: string, delta: number): Promise<void> {
-  const { data } = await supabase.from("performer_profiles").select("balance").eq("user_id", performerId).single();
-  const current = (data?.balance as number) ?? 0;
-  await supabase.from("performer_profiles").update({ balance: current + delta }).eq("user_id", performerId);
-}
-
-export async function adminApprovePerformerPayout(performerId: string): Promise<void> {
-  await supabase.from("performer_profiles").update({ pending_balance: 0 }).eq("user_id", performerId);
-}
