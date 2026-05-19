@@ -7,11 +7,13 @@ type PushPermission = "default" | "granted" | "denied";
 const SW_PATH = "/sw.js";
 const ASKED_KEY = "push_permission_asked";
 
-function urlBase64ToUint8Array(base64String: string): Uint8Array {
+function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
   const raw = atob(base64);
-  return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
+  const arr = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+  return arr;
 }
 
 export function usePushNotifications() {
@@ -29,14 +31,30 @@ export function usePushNotifications() {
     "Notification" in window &&
     !!VAPID_PUBLIC_KEY;
 
-  // Register service worker once
+  // Register service worker + auto-resubscribe if permission already granted
   useEffect(() => {
-    if (!isSupported) return;
-    navigator.serviceWorker.register(SW_PATH).then((r) => {
+    if (!isSupported || !user?.id) return;
+    const uid = user.id;
+    navigator.serviceWorker.register(SW_PATH).then(async (r) => {
       setReg(r);
-      r.pushManager.getSubscription().then((sub) => setIsSubscribed(!!sub));
+      const sub = await r.pushManager.getSubscription();
+      if (sub) {
+        // Ensure subscription is saved in DB (covers "granted but not in DB" case)
+        await dbSavePushSubscription(uid, sub);
+        setIsSubscribed(true);
+      } else if (Notification.permission === "granted") {
+        // Permission granted but subscription lost — recreate silently
+        try {
+          const newSub = await r.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+          });
+          await dbSavePushSubscription(uid, newSub);
+          setIsSubscribed(true);
+        } catch {}
+      }
     }).catch(() => {});
-  }, [isSupported]);
+  }, [isSupported, user?.id]);
 
   // Handle notification click from service worker → navigate
   useEffect(() => {
@@ -90,10 +108,8 @@ export function usePushNotifications() {
   const askOnce = useCallback(async () => {
     if (!isSupported || !user?.id) return;
     if (localStorage.getItem(ASKED_KEY)) return;
-    if (Notification.permission !== "default") {
-      localStorage.setItem(ASKED_KEY, "1");
-      return;
-    }
+    localStorage.setItem(ASKED_KEY, "1");
+    if (Notification.permission === "denied") return;
     // Small delay so the UI is settled
     await new Promise((r) => setTimeout(r, 3000));
     await subscribe();
