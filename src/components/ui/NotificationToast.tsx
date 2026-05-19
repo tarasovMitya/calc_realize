@@ -41,46 +41,43 @@ const DURATION = 5000;
 export function NotificationToast() {
   const navigate = useNavigate();
   const [toasts, setToasts] = useState<ToastNotif[]>([]);
-  const prevClientCount = useRef(0);
-  const prevPerformerCount = useRef(0);
+  // Track IDs already shown so we never re-show the same notification
+  const seenIds = useRef(new Set<string>());
 
   const clientNotifs = useDashboardStore((s) => s.notifications);
   const performerNotifs = usePerformerStore((s) => s.notifications);
 
+  // Seed seenIds on first load so old notifications don't pop up
+  const seeded = useRef(false);
+  useEffect(() => {
+    if (seeded.current) return;
+    seeded.current = true;
+    clientNotifs.forEach((n) => seenIds.current.add(n.id));
+    performerNotifs.forEach((n) => seenIds.current.add(n.id));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Watch for new client notifications
   useEffect(() => {
-    if (prevClientCount.current === 0) {
-      prevClientCount.current = clientNotifs.length;
-      return;
-    }
-    if (clientNotifs.length > prevClientCount.current) {
-      const newest = clientNotifs[0];
-      if (newest && !newest.read) {
-        setToasts((t) => [
-          { id: newest.id, title: newest.title, body: newest.body, type: newest.type, orderId: newest.orderId, role: "client" },
-          ...t.slice(0, 2),
-        ]);
-      }
-    }
-    prevClientCount.current = clientNotifs.length;
+    if (!seeded.current) return;
+    const fresh = clientNotifs.find((n) => !seenIds.current.has(n.id) && !n.read);
+    if (!fresh) return;
+    seenIds.current.add(fresh.id);
+    setToasts((t) => [
+      { id: fresh.id, title: fresh.title, body: fresh.body, type: fresh.type, orderId: fresh.orderId, role: "client" },
+      ...t.slice(0, 2),
+    ]);
   }, [clientNotifs]);
 
   // Watch for new performer notifications
   useEffect(() => {
-    if (prevPerformerCount.current === 0) {
-      prevPerformerCount.current = performerNotifs.length;
-      return;
-    }
-    if (performerNotifs.length > prevPerformerCount.current) {
-      const newest = performerNotifs[0];
-      if (newest && !newest.read) {
-        setToasts((t) => [
-          { id: newest.id, title: newest.title, body: newest.body, type: newest.type, orderId: newest.orderId, role: "performer" },
-          ...t.slice(0, 2),
-        ]);
-      }
-    }
-    prevPerformerCount.current = performerNotifs.length;
+    if (!seeded.current) return;
+    const fresh = performerNotifs.find((n) => !seenIds.current.has(n.id) && !n.read);
+    if (!fresh) return;
+    seenIds.current.add(fresh.id);
+    setToasts((t) => [
+      { id: fresh.id, title: fresh.title, body: fresh.body, type: fresh.type, orderId: fresh.orderId, role: "performer" },
+      ...t.slice(0, 2),
+    ]);
   }, [performerNotifs]);
 
   // Auto-dismiss
