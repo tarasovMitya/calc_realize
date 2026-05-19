@@ -6,7 +6,6 @@ import type {
   EarningsRecord,
   PerformerNotification,
   BankCard,
-  WithdrawRecord,
 } from "../types";
 import { useSharedOrdersStore } from "../../store/sharedOrdersStore";
 import type { AcceptResult } from "../../store/sharedOrdersStore";
@@ -46,7 +45,6 @@ interface PerformerState {
   earnings: EarningsRecord[];
   notifications: PerformerNotification[];
   bankCards: BankCard[];
-  withdrawHistory: WithdrawRecord[];
   isHydrated: boolean;
 
   // Actions
@@ -65,7 +63,6 @@ interface PerformerState {
   markAllRead: () => void;
   setVerificationStatus: (status: string, reason?: string | null) => void;
   updateProfile: (data: Partial<PerformerProfile>) => void;
-  withdraw: (amount: number, cardId: string) => void;
   addBankCard: (card: Omit<BankCard, "id">) => void;
   removeBankCard: (id: string) => void;
   setDefaultCard: (id: string) => void;
@@ -116,7 +113,6 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
   earnings: [],
   notifications: [],
   bankCards: [],
-  withdrawHistory: [],
   isHydrated: false,
 
   setVerificationStatus: (status, reason = null) =>
@@ -480,24 +476,6 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
     if (userId) dbSavePerformerProfile(userId, data);
   },
 
-  withdraw: (amount, cardId) =>
-    set((s) => {
-      if (amount > s.balance) return s;
-      const card = s.bankCards.find((c) => c.id === cardId);
-      const now = new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
-      const record: WithdrawRecord = {
-        id: `w-${Date.now()}`,
-        amount,
-        cardLast4: card?.last4 ?? "????",
-        date: new Date().toISOString().split("T")[0],
-        time: now,
-        status: "completed",
-      };
-      return {
-        balance: s.balance - amount,
-        withdrawHistory: [record, ...s.withdrawHistory],
-      };
-    }),
 
   addBankCard: (card) =>
     set((s) => ({
