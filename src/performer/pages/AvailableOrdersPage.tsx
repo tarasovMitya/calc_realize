@@ -112,7 +112,7 @@ export function AvailableOrdersPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.05 }}
-          className="flex gap-2 mb-5"
+          className="flex gap-2 mb-5 sticky top-0 z-10 bg-white py-2 -mx-4 px-4"
         >
           {SORT_OPTIONS.map(({ key, label }) => (
             <button

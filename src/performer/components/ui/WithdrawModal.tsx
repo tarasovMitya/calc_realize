@@ -82,8 +82,8 @@ export function WithdrawModal({ onClose }: WithdrawModalProps) {
       expiry: cardExpiry,
       isDefault: bankCards.length === 0,
     };
-    addBankCard(newCard);
-    setSelectedCardId(`card-${Date.now()}`);
+    const newId = addBankCard(newCard);
+    setSelectedCardId(newId);
     setCardNumber("");
     setCardExpiry("");
     setCardError("");

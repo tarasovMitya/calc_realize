@@ -1,12 +1,22 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { usePerformerStore } from "../../store/performerStore";
 
 export function AvailabilityToggle() {
   const { isOnline, toggleOnline } = usePerformerStore();
+  const [toggling, setToggling] = useState(false);
+
+  const handleToggle = () => {
+    if (toggling) return;
+    setToggling(true);
+    toggleOnline();
+    setTimeout(() => setToggling(false), 600);
+  };
 
   return (
     <button
-      onClick={toggleOnline}
+      onClick={handleToggle}
+      disabled={toggling}
       className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl border-2 transition-all w-full ${
         isOnline
           ? "border-green-200 bg-green-50"

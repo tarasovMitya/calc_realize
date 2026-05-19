@@ -136,8 +136,22 @@ export function VerificationGate({ children }: VerificationGateProps) {
   }
 
   return (
-    <div className="max-w-lg mx-auto px-4 pt-16 text-center">
-      <p className="text-sm text-gray-400">Доступ к заказам ограничен. Обратитесь в поддержку.</p>
+    <div className="max-w-lg mx-auto px-4 pt-16 pb-10">
+      <div className="bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-sm">
+        <div className="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto mb-5">
+          <ShieldCheck size={28} className="text-gray-400" />
+        </div>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Доступ ограничен</h2>
+        <p className="text-sm text-gray-500 mb-6">
+          Что-то пошло не так с вашим статусом верификации. Напишите нам — разберёмся.
+        </p>
+        <a
+          href="mailto:support@slot.ru"
+          className="w-full inline-block px-6 py-3 bg-black text-white rounded-xl font-semibold text-sm hover:bg-gray-800 transition-colors"
+        >
+          Написать в поддержку
+        </a>
+      </div>
     </div>
   );
 }

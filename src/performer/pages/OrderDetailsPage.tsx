@@ -218,9 +218,18 @@ export function PerformerOrderDetailsPage() {
           animate={{ opacity: 1, y: 0 }}
           className="fixed bottom-20 lg:bottom-0 inset-x-0 p-4 bg-white border-t border-gray-100 lg:max-w-2xl lg:mx-auto lg:left-60"
         >
-          <div className="flex items-center justify-center gap-3 py-3 rounded-2xl bg-orange-50">
-            <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
-            <span className="text-sm font-semibold text-orange-700">Ожидаем подтверждения клиента</span>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-center gap-3 py-3 rounded-2xl bg-orange-50">
+              <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+              <span className="text-sm font-semibold text-orange-700">Ожидаем подтверждения клиента</span>
+            </div>
+            <button
+              onClick={() => openChatForOrder(order.id, "client_performer", null, user?.id ?? null)}
+              className="w-full py-2.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors flex items-center justify-center gap-1.5"
+            >
+              <MessageCircle size={13} />
+              Написать клиенту
+            </button>
           </div>
         </motion.div>
       )}
@@ -305,13 +314,16 @@ export function PerformerOrderDetailsPage() {
                 >
                   {isUpdating ? "Определяем местоположение..." : "Разрешить геолокацию"}
                 </button>
-                <button
-                  onClick={handleSkipGeo}
-                  disabled={isUpdating}
-                  className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  Продолжить без геолокации
-                </button>
+                <div className="flex flex-col items-center gap-1">
+                  <button
+                    onClick={handleSkipGeo}
+                    disabled={isUpdating}
+                    className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    Продолжить без геолокации
+                  </button>
+                  <p className="text-xs text-gray-300">Клиент не увидит вашу позицию на карте</p>
+                </div>
               </div>
             </motion.div>
           </>

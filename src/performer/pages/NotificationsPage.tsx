@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Bell, ClipboardList, Zap, XCircle, Wallet } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { usePerformerStore } from "../store/performerStore";
 import type { PerformerNotification } from "../types";
 
@@ -49,7 +50,13 @@ function NotificationCard({ n, onClick }: { n: PerformerNotification; onClick: (
 
 export function PerformerNotificationsPage() {
   const { notifications, markNotificationRead, markAllRead } = usePerformerStore();
+  const navigate = useNavigate();
   const unread = notifications.filter((n) => !n.read).length;
+
+  const handleClick = (n: PerformerNotification) => {
+    markNotificationRead(n.id);
+    if (n.orderId) navigate(`/performer/orders/${n.orderId}`);
+  };
 
   return (
     <div className="max-w-2xl mx-auto px-4 pt-8 pb-10">
@@ -85,7 +92,7 @@ export function PerformerNotificationsPage() {
             <NotificationCard
               key={n.id}
               n={n}
-              onClick={() => markNotificationRead(n.id)}
+              onClick={() => handleClick(n)}
             />
           ))}
         </div>

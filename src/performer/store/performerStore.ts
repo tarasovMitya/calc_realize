@@ -63,7 +63,7 @@ interface PerformerState {
   markAllRead: () => void;
   setVerificationStatus: (status: string, reason?: string | null) => void;
   updateProfile: (data: Partial<PerformerProfile>) => void;
-  addBankCard: (card: Omit<BankCard, "id">) => void;
+  addBankCard: (card: Omit<BankCard, "id">) => string;
   removeBankCard: (id: string) => void;
   setDefaultCard: (id: string) => void;
 }
@@ -330,6 +330,7 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
 
   submitCompletion: async (orderId, comment) => {
     const now = new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+    const { activeOrders: prevOrders, pendingBalance: prevPendingBalance, balance: prevBalance } = get();
     set((s) => {
       const order = s.activeOrders.find((o) => o.id === orderId);
       const newPendingBalance = s.pendingBalance + (order?.priceTotal ?? 0);
@@ -352,7 +353,14 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
         ),
       };
     });
-    await dbRequestOrderCompletion(orderId, comment);
+    try {
+      await dbRequestOrderCompletion(orderId, comment);
+    } catch {
+      set({ activeOrders: prevOrders, pendingBalance: prevPendingBalance });
+      const userId = useAuthStore.getState().user?.id;
+      if (userId) dbUpdatePerformerBalance(userId, prevBalance, prevPendingBalance);
+      throw new Error("Не удалось отправить отчёт");
+    }
   },
 
   onClientConfirmed: (orderId) => {
@@ -477,10 +485,11 @@ export const usePerformerStore = create<PerformerState>((set, get) => ({
   },
 
 
-  addBankCard: (card) =>
-    set((s) => ({
-      bankCards: [...s.bankCards, { ...card, id: `card-${Date.now()}` }],
-    })),
+  addBankCard: (card) => {
+    const id = `card-${Date.now()}`;
+    set((s) => ({ bankCards: [...s.bankCards, { ...card, id }] }));
+    return id;
+  },
 
   removeBankCard: (id) =>
     set((s) => ({ bankCards: s.bankCards.filter((c) => c.id !== id) })),

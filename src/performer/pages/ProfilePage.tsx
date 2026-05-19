@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Phone, MessageCircle, Edit3, Check, Plus, Camera, CreditCard } from "lucide-react";
+import { Phone, MessageCircle, Edit3, Check, Plus, Camera, CreditCard, CheckCircle2 } from "lucide-react";
 import { usePerformerStore } from "../store/performerStore";
 import { pluralRu } from "../../utils/priceCalculator";
 import { AddressSection } from "../components/ui/AddressSection";
@@ -55,6 +55,7 @@ export function PerformerProfilePage() {
   const { profile, isHydrated, updateProfile, bankCards, removeBankCard, setDefaultCard } = usePerformerStore();
   const [timedOut, setTimedOut] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const [form, setForm] = useState({
     name: profile.name,
     phone: profile.phone,
@@ -79,6 +80,8 @@ export function PerformerProfilePage() {
   const handleSave = () => {
     updateProfile(form);
     setEditing(false);
+    setSaveSuccess(true);
+    setTimeout(() => setSaveSuccess(false), 2000);
   };
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -161,13 +164,20 @@ export function PerformerProfilePage() {
       >
         <div className="flex items-center justify-between mb-4">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Контакты</p>
-          <button
-            onClick={() => (editing ? handleSave() : setEditing(true))}
-            className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            {editing ? <Check size={14} /> : <Edit3 size={14} />}
-            {editing ? "Сохранить" : "Изменить"}
-          </button>
+          {saveSuccess ? (
+            <span className="flex items-center gap-1 text-xs font-semibold text-green-600">
+              <CheckCircle2 size={14} />
+              Сохранено
+            </span>
+          ) : (
+            <button
+              onClick={() => (editing ? handleSave() : setEditing(true))}
+              className="flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              {editing ? <Check size={14} /> : <Edit3 size={14} />}
+              {editing ? "Сохранить" : "Изменить"}
+            </button>
+          )}
         </div>
 
         <div className="flex flex-col gap-4">

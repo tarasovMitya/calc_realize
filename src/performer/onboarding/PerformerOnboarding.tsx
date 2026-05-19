@@ -87,46 +87,48 @@ export function PerformerOnboarding() {
     setLoading(false);
   };
 
-  const handleVerifyOtp = async () => {
-    const code = otp.join("");
+  const verifyOtp = async (code: string) => {
     if (code.length < 6) { setError("Введите 6-значный код"); return; }
     setLoading(true);
     setError("");
-    const { error: err } = await supabase.auth.verifyOtp({
-      email,
-      token: code,
-      type: "email",
-    });
-    if (err) {
-      setError("Неверный код. Попробуй ещё раз");
+    try {
+      const { error: err } = await supabase.auth.verifyOtp({ email, token: code, type: "email" });
+      if (err) { setError("Неверный код. Попробуй ещё раз"); return; }
+      const profileData = {
+        name: name || "Новый исполнитель",
+        phone,
+        avatar: avatarUrl,
+        address,
+        city,
+        lat,
+        lng,
+        workRadius: radius,
+        specializations: skills,
+      };
+      updateProfile(profileData);
+      await supabase.auth.updateUser({ data: { performer_role: true, performer_onboarded: true } });
+      complete();
+      reset();
+      navigate("/performer", { replace: true });
+    } catch {
+      setError("Не удалось войти. Попробуйте снова.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const profileData = {
-      name: name || "Новый исполнитель",
-      phone,
-      avatar: avatarUrl,
-      address,
-      city,
-      lat,
-      lng,
-      workRadius: radius,
-      specializations: skills,
-    };
-    updateProfile(profileData);
-    await supabase.auth.updateUser({ data: { performer_role: true, performer_onboarded: true } });
-    complete();
-    reset();
-    navigate("/performer", { replace: true });
   };
+
+  const handleVerifyOtp = () => verifyOtp(otp.join(""));
 
   const handleOtpChange = (i: number, val: string) => {
     const digit = val.replace(/\D/, "").slice(-1);
     const next = [...otp];
     next[i] = digit;
     setOtp(next);
-    if (digit && i < 5) otpRefs.current[i + 1]?.focus();
+    if (digit && i < 5) {
+      otpRefs.current[i + 1]?.focus();
+    } else if (digit && i === 5 && next.every((d) => d !== "")) {
+      verifyOtp(next.join(""));
+    }
   };
 
   const handleOtpKeyDown = (i: number, e: React.KeyboardEvent) => {

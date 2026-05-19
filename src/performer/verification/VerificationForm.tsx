@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Check, Upload, X, Camera, FileText, Briefcase, CreditCard, ShieldCheck } from "lucide-react";
 import { supabase } from "../../lib/supabase";
@@ -96,11 +96,17 @@ export function VerificationForm() {
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormState>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadStage, setUploadStage] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const errorRef = useRef<HTMLParagraphElement>(null);
   const { user } = useAuthStore();
   const { setVerificationStatus } = usePerformerStore();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (error) errorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [error]);
 
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) =>
     setForm(f => ({ ...f, [k]: v }));
@@ -150,15 +156,18 @@ export function VerificationForm() {
     let selfieUrl: string | null = null;
 
     if (form.passportFile) {
+      setUploadStage("Загружаем паспорт...");
       const res = await uploadFile(userId, "verification-documents", "passport", form.passportFile);
-      if (res.error) { setError(res.error); setSubmitting(false); return; }
+      if (res.error) { setError(res.error); setSubmitting(false); setUploadStage(null); return; }
       passportUrl = res.url;
     }
     if (form.selfieFile) {
+      setUploadStage("Загружаем селфи...");
       const res = await uploadFile(userId, "verification-documents", "selfie", form.selfieFile);
-      if (res.error) { setError(res.error); setSubmitting(false); return; }
+      if (res.error) { setError(res.error); setSubmitting(false); setUploadStage(null); return; }
       selfieUrl = res.url;
     }
+    setUploadStage("Отправляем анкету...");
 
     await supabase.from("verification_requests").upsert({
       performer_id: userId,
@@ -330,7 +339,7 @@ export function VerificationForm() {
       </div>
 
       {error && (
-        <p className="text-sm text-red-500 mb-3 px-1">{error}</p>
+        <p ref={errorRef} className="text-sm text-red-500 mb-3 px-1">{error}</p>
       )}
 
       <button
@@ -338,7 +347,7 @@ export function VerificationForm() {
         disabled={submitting}
         className="w-full py-3.5 bg-blue-600 text-white rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
       >
-        {submitting ? "Отправляем..." : step < STEPS.length - 1 ? (
+        {submitting ? (uploadStage ?? "Отправляем...") : step < STEPS.length - 1 ? (
           <><span>Продолжить</span><ChevronRight size={16} /></>
         ) : (
           <><Check size={16} /><span>Отправить на проверку</span></>

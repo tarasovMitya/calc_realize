@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Check, Trash2 } from "lucide-react";
 import type { BankCard } from "../../types";
 
@@ -14,6 +15,28 @@ interface BankCardItemProps {
 }
 
 export function BankCardItem({ card, onSetDefault, onDelete }: BankCardItemProps) {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  if (confirmDelete) {
+    return (
+      <div className="flex items-center gap-3 px-4 py-3.5 border-2 border-red-100 bg-red-50 rounded-2xl">
+        <span className="text-sm text-red-800 flex-1 font-medium">Удалить •••• {card.last4}?</span>
+        <button
+          onClick={() => setConfirmDelete(false)}
+          className="text-xs font-semibold text-gray-600 px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors"
+        >
+          Нет
+        </button>
+        <button
+          onClick={onDelete}
+          className="text-xs font-semibold text-red-600 px-2 py-1 rounded-lg hover:bg-red-100 transition-colors"
+        >
+          Удалить
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center gap-4 px-4 py-3.5 border border-gray-100 rounded-2xl">
       {/* Card brand */}
@@ -46,7 +69,7 @@ export function BankCardItem({ card, onSetDefault, onDelete }: BankCardItemProps
           </button>
         )}
         <button
-          onClick={onDelete}
+          onClick={() => setConfirmDelete(true)}
           className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
         >
           <Trash2 size={14} />
