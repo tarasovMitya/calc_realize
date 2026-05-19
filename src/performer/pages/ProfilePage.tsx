@@ -1,7 +1,9 @@
 import { useRef, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Phone, MessageCircle, Edit3, Check, Plus, Camera, CreditCard, CheckCircle2 } from "lucide-react";
+import { Phone, MessageCircle, Edit3, Check, Plus, Camera, CreditCard, CheckCircle2, LogOut } from "lucide-react";
 import { usePerformerStore } from "../store/performerStore";
+import { useAuthStore } from "../../store/authStore";
 import { pluralRu } from "../../utils/priceCalculator";
 import { AddressSection } from "../components/ui/AddressSection";
 import { BankCardItem } from "../components/ui/BankCardItem";
@@ -53,6 +55,8 @@ function ProfileSkeleton() {
 
 export function PerformerProfilePage() {
   const { profile, isHydrated, updateProfile, bankCards, removeBankCard, setDefaultCard } = usePerformerStore();
+  const { signOut } = useAuthStore();
+  const navigate = useNavigate();
   const [timedOut, setTimedOut] = useState(false);
   const [editing, setEditing] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -254,6 +258,18 @@ export function PerformerProfilePage() {
         <StatCard label="Заказов" value={String(profile.completedOrders)} />
         <StatCard label="Специализаций" value={String(profile.specializations.length)} />
       </motion.div>
+
+      {/* Logout — mobile only (sidebar has it on desktop) */}
+      <motion.button
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        onClick={async () => { await signOut(); navigate("/performer/auth", { replace: true }); }}
+        className="lg:hidden mt-4 w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl border-2 border-gray-100 text-sm font-semibold text-gray-500 hover:border-red-200 hover:text-red-500 transition-all"
+      >
+        <LogOut size={16} />
+        Выйти из аккаунта
+      </motion.button>
     </div>
   );
 }
