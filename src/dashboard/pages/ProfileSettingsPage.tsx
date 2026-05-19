@@ -37,6 +37,11 @@ export function ProfileSettingsPage() {
   const [saved, setSaved] = useState(false);
   const [phone, setPhone] = useState("");
 
+  const isPhoneValid = (p: string) => {
+    const digits = p.replace(/\D/g, "");
+    return digits.length === 0 || digits.length === 11;
+  };
+
   const meta = user?.user_metadata as Record<string, string> | undefined;
   const displayName =
     (meta?.full_name ?? meta?.name ?? profile.name) || "Пользователь";
@@ -180,14 +185,21 @@ export function ProfileSettingsPage() {
 
           <Field label="Телефон">
             {isEditing ? (
-              <input
-                type="tel"
-                inputMode="numeric"
-                value={phone}
-                onChange={handlePhoneChange}
-                placeholder="+7 (999) 999-99-99"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-black transition-colors"
-              />
+              <div>
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  value={phone}
+                  onChange={handlePhoneChange}
+                  placeholder="+7 (999) 999-99-99"
+                  className={`w-full px-4 py-3 rounded-xl border text-sm outline-none transition-colors ${
+                    phone && !isPhoneValid(phone) ? "border-red-300 focus:border-red-400" : "border-gray-200 focus:border-black"
+                  }`}
+                />
+                {phone && !isPhoneValid(phone) && (
+                  <p className="text-xs text-red-500 mt-1">Введите полный номер: +7 (xxx) xxx-xx-xx</p>
+                )}
+              </div>
             ) : (
               <p className="text-sm text-gray-800 px-4 py-3 bg-gray-50 rounded-xl">
                 {profile.phone || <span className="text-gray-400">Не указано</span>}
@@ -225,7 +237,7 @@ export function ProfileSettingsPage() {
         {isEditing && (
           <button
             type="submit"
-            disabled={saving}
+            disabled={saving || !isPhoneValid(phone)}
             className="w-full py-4 rounded-2xl bg-black text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 hover:bg-gray-800 active:scale-95 disabled:opacity-50"
           >
             {saving ? (
@@ -256,6 +268,7 @@ function AddressesSection() {
   const { addresses, addAddress, deleteAddress, setDefaultAddress } = useDashboardStore();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ label: "", street: "", city: "Москва" });
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const handleAdd = () => {
     if (!form.street.trim()) return;
@@ -284,41 +297,63 @@ function AddressesSection() {
 
       <div className="flex flex-col gap-2">
         {addresses.map((a) => (
-          <div
-            key={a.id}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors ${
-              a.isDefault ? "border-black bg-gray-50" : "border-gray-100"
-            }`}
-          >
-            <MapPin size={15} className="text-gray-400 shrink-0" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">{a.street}</p>
-              <p className="text-xs text-gray-400">{a.city}</p>
-            </div>
-            <div className="flex items-center gap-1 shrink-0">
-              {!a.isDefault && (
+          <div key={a.id}>
+            <div
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors ${
+                a.isDefault ? "border-black bg-gray-50" : "border-gray-100"
+              }`}
+            >
+              <MapPin size={15} className="text-gray-400 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">{a.street}</p>
+                <p className="text-xs text-gray-400">{a.city}</p>
+              </div>
+              <div className="flex items-center gap-1 shrink-0">
+                {!a.isDefault && (
+                  <button
+                    type="button"
+                    onClick={() => setDefaultAddress(a.id)}
+                    title="Сделать основным"
+                    className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
+                  >
+                    <Star size={13} />
+                  </button>
+                )}
+                {a.isDefault && (
+                  <span className="text-[10px] font-semibold text-gray-400 bg-gray-200 px-1.5 py-0.5 rounded-full mr-1">
+                    Основной
+                  </span>
+                )}
                 <button
                   type="button"
-                  onClick={() => setDefaultAddress(a.id)}
-                  title="Сделать основным"
-                  className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-700 transition-colors"
+                  onClick={() => setDeleteConfirmId(a.id)}
+                  className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
                 >
-                  <Star size={13} />
+                  <Trash2 size={13} />
                 </button>
-              )}
-              {a.isDefault && (
-                <span className="text-[10px] font-semibold text-gray-400 bg-gray-200 px-1.5 py-0.5 rounded-full mr-1">
-                  Основной
-                </span>
-              )}
-              <button
-                type="button"
-                onClick={() => deleteAddress(a.id)}
-                className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
-              >
-                <Trash2 size={13} />
-              </button>
+              </div>
             </div>
+            {deleteConfirmId === a.id && (
+              <div className="mt-1 flex items-center justify-between gap-2 bg-red-50 rounded-xl px-4 py-2.5 text-sm">
+                <span className="text-red-700 font-medium">Удалить этот адрес?</span>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setDeleteConfirmId(null)}
+                    className="px-3 py-1 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:border-gray-400 transition-colors"
+                  >
+                    Нет
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { deleteAddress(a.id); setDeleteConfirmId(null); }}
+                    className="px-3 py-1 rounded-lg bg-red-500 text-white text-xs font-semibold hover:bg-red-600 transition-colors"
+                  >
+                    Удалить
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -434,7 +469,7 @@ function NotificationSettings({ userId }: { userId: string | null }) {
           />
           {permission === "denied" && (
             <p className="text-xs text-red-500 mt-1">
-              Разрешите доступ в настройках браузера, чтобы включить push
+              Доступ запрещён. Чтобы включить: в адресной строке браузера нажмите на иконку замка → Уведомления → Разрешить
             </p>
           )}
         </div>

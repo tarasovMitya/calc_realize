@@ -63,10 +63,16 @@ export function CheckoutStep() {
 
         <Section title="Контакты">
           <Row label="Имя" value={contacts.name} />
-          <Row label="Email" value={contacts.email} />
-          <Row label="Адрес" value={contacts.address} />
+          <Row label="Email" value={contacts.email} warn={!contacts.email} />
+          <Row label="Адрес" value={contacts.address} warn={!contacts.address} />
           {contacts.comment && <Row label="Комментарий" value={contacts.comment} />}
         </Section>
+
+        {(!contacts.email || !contacts.address) && (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+            Заполните email и адрес — без них нельзя назначить исполнителя
+          </div>
+        )}
       </div>
     </div>
   );
@@ -81,11 +87,13 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({ label, value, warn }: { label: string; value: string; warn?: boolean }) {
   return (
     <div className="flex items-start justify-between gap-4">
       <span className="text-sm text-gray-500 shrink-0">{label}</span>
-      <span className="text-sm font-medium text-gray-900 text-right">{value}</span>
+      <span className={`text-sm font-medium text-right ${warn ? "text-amber-600 italic" : "text-gray-900"}`}>
+        {value || "Не указано"}
+      </span>
     </div>
   );
 }

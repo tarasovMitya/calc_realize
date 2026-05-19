@@ -24,6 +24,7 @@ export function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [cooldown, setCooldown] = useState(0);
+  const [resentMessage, setResentMessage] = useState("");
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -85,8 +86,7 @@ export function AuthPage() {
 
   const handleSendOtp = emailForm.handleSubmit(({ email: e }) => sendOtp(e));
 
-  const handleVerifyOtp = async () => {
-    const code = otp.join("");
+  const verifyOtp = async (code: string) => {
     if (code.length < 6) { setError("Введите 6-значный код"); return; }
     setLoading(true);
     setError("");
@@ -105,12 +105,24 @@ export function AuthPage() {
     // On success, onAuthStateChange fires → authStore updates → useEffect redirects
   };
 
+  const handleVerifyOtp = () => verifyOtp(otp.join(""));
+
   const handleOtpChange = (i: number, val: string) => {
     const digit = val.replace(/\D/, "").slice(-1);
     const next = [...otp];
     next[i] = digit;
     setOtp(next);
-    if (digit && i < 5) otpRefs.current[i + 1]?.focus();
+    if (digit && i < 5) {
+      otpRefs.current[i + 1]?.focus();
+    } else if (digit && i === 5 && next.every((d) => d !== "")) {
+      verifyOtp(next.join(""));
+    }
+  };
+
+  const handleResend = async () => {
+    await sendOtp(email);
+    setResentMessage("Код отправлен повторно");
+    setTimeout(() => setResentMessage(""), 3000);
   };
 
   const handleOtpKeyDown = (i: number, e: React.KeyboardEvent) => {
@@ -249,6 +261,7 @@ export function AuthPage() {
               </div>
 
               {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+              {resentMessage && <p className="text-green-600 text-sm text-center">{resentMessage}</p>}
 
               <button
                 onClick={handleVerifyOtp}
@@ -259,21 +272,21 @@ export function AuthPage() {
               </button>
 
               <div className="flex items-center justify-between">
-              <button
-                type="button"
-                onClick={() => { setSubStep("email"); setOtp(["","","","","",""]); setError(""); }}
-                className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                Изменить email
-              </button>
-              <button
-                type="button"
-                disabled={cooldown > 0}
-                onClick={() => sendOtp(email)}
-                className="text-sm text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-40"
-              >
-                {cooldown > 0 ? `Отправить снова (${cooldown}с)` : "Отправить снова"}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => { setSubStep("email"); setOtp(["","","","","",""]); setError(""); setResentMessage(""); }}
+                  className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  Изменить email
+                </button>
+                <button
+                  type="button"
+                  disabled={cooldown > 0 || loading}
+                  onClick={handleResend}
+                  className="text-sm text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-40"
+                >
+                  {cooldown > 0 ? `Отправить снова (${cooldown}с)` : "Отправить снова"}
+                </button>
               </div>
             </motion.div>
           )}

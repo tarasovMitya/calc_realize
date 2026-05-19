@@ -12,13 +12,17 @@ export function DisputeModal({ isOpen, onClose, onSubmit }: DisputeModalProps) {
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
 
   const handleSubmit = async () => {
     if (!comment.trim()) return;
     setSubmitting(true);
-    await onSubmit(comment.trim());
-    setSubmitting(false);
-    setSubmitted(true);
+    try {
+      await onSubmit(comment.trim());
+      setSubmitted(true);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleClose = () => {
@@ -26,7 +30,16 @@ export function DisputeModal({ isOpen, onClose, onSubmit }: DisputeModalProps) {
     setTimeout(() => {
       setComment("");
       setSubmitted(false);
+      setShowDiscardConfirm(false);
     }, 300);
+  };
+
+  const handleBackdropClick = () => {
+    if (!submitted && comment.trim()) {
+      setShowDiscardConfirm(true);
+    } else {
+      handleClose();
+    }
   };
 
   return (
@@ -38,7 +51,7 @@ export function DisputeModal({ isOpen, onClose, onSubmit }: DisputeModalProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/40 z-40"
-            onClick={handleClose}
+            onClick={handleBackdropClick}
           />
           <motion.div
             initial={{ y: "100%" }}
@@ -57,20 +70,45 @@ export function DisputeModal({ isOpen, onClose, onSubmit }: DisputeModalProps) {
               </button>
             </div>
 
-            {submitted ? (
+            {showDiscardConfirm ? (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="flex flex-col items-center gap-3 py-6"
+                className="flex flex-col items-center gap-4 py-4"
+              >
+                <p className="font-semibold text-gray-900 text-center">Отменить жалобу?</p>
+                <p className="text-sm text-gray-500 text-center">Введённый текст будет потерян</p>
+                <div className="flex gap-2 w-full">
+                  <button
+                    onClick={() => setShowDiscardConfirm(false)}
+                    className="flex-1 py-3 rounded-2xl border border-gray-200 text-sm font-semibold text-gray-700 hover:border-gray-400 transition-all"
+                  >
+                    Продолжить
+                  </button>
+                  <button
+                    onClick={handleClose}
+                    className="flex-1 py-3 rounded-2xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-all"
+                  >
+                    Отменить
+                  </button>
+                </div>
+              </motion.div>
+            ) : submitted ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex flex-col items-center gap-3 py-4"
               >
                 <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
                   <CheckCircle size={24} className="text-green-600" />
                 </div>
                 <p className="font-semibold text-gray-900">Спор открыт</p>
-                <p className="text-sm text-gray-500 text-center">С вами свяжется поддержка</p>
+                <p className="text-sm text-gray-500 text-center">
+                  Мы рассмотрим обращение в течение 24 часов и свяжемся с вами через чат поддержки
+                </p>
                 <button
                   onClick={handleClose}
-                  className="mt-2 px-6 py-2.5 rounded-2xl bg-gray-100 text-sm font-semibold text-gray-700 hover:bg-gray-200 transition-all"
+                  className="mt-1 w-full py-3 rounded-2xl bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 transition-all"
                 >
                   Закрыть
                 </button>
@@ -88,6 +126,7 @@ export function DisputeModal({ isOpen, onClose, onSubmit }: DisputeModalProps) {
                     rows={4}
                     className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm text-gray-800 placeholder-gray-300 resize-none focus:outline-none focus:border-red-300 focus:ring-2 focus:ring-red-100 transition-all"
                   />
+                  <p className="text-xs text-gray-400 mt-1.5 text-right">{comment.length} симв.</p>
                 </div>
 
                 <button

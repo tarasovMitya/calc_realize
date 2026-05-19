@@ -16,11 +16,16 @@ export function CompletionConfirmBlock({
   onDispute,
 }: CompletionConfirmBlockProps) {
   const [confirming, setConfirming] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
 
   const handleConfirm = async () => {
     setConfirming(true);
-    await onConfirm();
-    setConfirming(false);
+    try {
+      await onConfirm();
+      setConfirmed(true);
+    } finally {
+      setConfirming(false);
+    }
   };
 
   const timeStr = completionTime
@@ -29,6 +34,20 @@ export function CompletionConfirmBlock({
         minute: "2-digit",
       })
     : "";
+
+  if (confirmed) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.97 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="border border-green-100 bg-green-50 rounded-2xl p-5 flex flex-col items-center gap-2 text-center"
+      >
+        <CheckCircle size={28} className="text-green-600" />
+        <p className="text-sm font-semibold text-green-800">Выполнение подтверждено</p>
+        <p className="text-xs text-green-600">Спасибо! Оцените работу исполнителя</p>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div

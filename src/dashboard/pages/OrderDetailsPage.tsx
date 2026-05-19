@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { ChevronLeft, RotateCcw, MessageCircle, CreditCard, XCircle } from "lucide-react";
 import { LiveTrackingMap } from "../components/LiveTrackingMap";
@@ -42,6 +42,17 @@ export function OrderDetailsPage() {
   const [showDisputeModal, setShowDisputeModal] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showRatingModal, setShowRatingModal] = useState(false);
+  const [locationTimedOut, setLocationTimedOut] = useState(false);
+
+  useEffect(() => {
+    if (!order || order.status !== "on_the_way") return;
+    if (order.performerLat != null && order.performerLng != null) return;
+    const t = setTimeout(() => setLocationTimedOut(true), 10000);
+    return () => clearTimeout(t);
+  }, [order?.status, order?.performerLat, order?.performerLng]);
+
+  const ratingSkipKey = order ? `rating_skipped_${order.id}` : null;
+  const ratingWasSkipped = ratingSkipKey ? sessionStorage.getItem(ratingSkipKey) === "1" : false;
 
   const handleCancel = () => {
     cancelOrder(order!.id);
@@ -125,7 +136,7 @@ export function OrderDetailsPage() {
 
         {/* Live tracking map */}
         {order.status === "on_the_way" && (
-          <Section title="Исполнитель едет">
+          <Section title={`Исполнитель едет${order.performer?.name ? ` · ${order.performer.name}` : ""}`}>
             {order.performerLat != null && order.performerLng != null ? (
               <LiveTrackingMap
                 performerLat={order.performerLat}
@@ -135,6 +146,10 @@ export function OrderDetailsPage() {
                 destinationAddress={order.address}
                 performerLastSeen={order.performerLastSeen}
               />
+            ) : locationTimedOut ? (
+              <p className="py-4 text-sm text-gray-400 text-center">
+                Местоположение недоступно — исполнитель уже в пути
+              </p>
             ) : (
               <div className="flex items-center justify-center gap-2 py-4 text-sm text-gray-400">
                 <div className="w-4 h-4 rounded-full border-2 border-gray-200 border-t-blue-400 animate-spin" />
@@ -262,14 +277,17 @@ export function OrderDetailsPage() {
         onClose={() => setShowDisputeModal(false)}
         onSubmit={async (comment) => { await openDispute(order.id, comment); }}
       />
-      {showRatingModal && order.performer && !order.clientRating && (
+      {showRatingModal && order.performer && !order.clientRating && !ratingWasSkipped && (
         <RatingModal
           performerName={order.performer.name}
           onSubmit={async (rating, comment) => {
             await submitClientRating(order.id, order.performer!.id, rating, comment);
             setShowRatingModal(false);
           }}
-          onSkip={() => setShowRatingModal(false)}
+          onSkip={() => {
+            if (ratingSkipKey) sessionStorage.setItem(ratingSkipKey, "1");
+            setShowRatingModal(false);
+          }}
         />
       )}
     </motion.div>

@@ -81,6 +81,12 @@ export function ChatDrawer({
                 <div className="flex flex-col items-center justify-center h-full gap-3 px-6 text-center">
                   <AlertCircle size={24} className="text-red-400" />
                   <p className="text-sm text-gray-500">{chatError}</p>
+                  <button
+                    onClick={closeChat}
+                    className="mt-1 px-4 py-2 rounded-xl bg-gray-100 text-sm font-medium text-gray-600 hover:bg-gray-200 transition-colors"
+                  >
+                    Закрыть и попробовать снова
+                  </button>
                 </div>
               ) : (
                 <div className="flex items-center justify-center h-full">

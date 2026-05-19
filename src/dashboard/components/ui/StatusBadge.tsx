@@ -18,7 +18,7 @@ interface StatusBadgeProps {
 }
 
 export function StatusBadge({ status, showDot = true }: StatusBadgeProps) {
-  const { label, className } = config[status];
+  const { label, className } = config[status] ?? { label: status, className: "bg-gray-100 text-gray-600" };
   const isActive = !["completed", "cancelled"].includes(status);
 
   return (

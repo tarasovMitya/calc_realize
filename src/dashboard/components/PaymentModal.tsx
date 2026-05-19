@@ -76,11 +76,9 @@ export function PaymentModal() {
                     <Lock size={13} className="text-gray-400" />
                     <span className="text-xs font-medium text-gray-400">Безопасная оплата</span>
                   </div>
-                  {!isProcessing && (
-                    <button onClick={dismissPayment} className="text-gray-400 hover:text-gray-600 transition-colors p-1 -mr-1">
-                      <X size={18} />
-                    </button>
-                  )}
+                  <button onClick={dismissPayment} className="text-gray-400 hover:text-gray-600 transition-colors p-1 -mr-1">
+                    <X size={18} />
+                  </button>
                 </div>
                 <h2 className="text-xl font-bold text-gray-900">Оплата заказа</h2>
               </div>

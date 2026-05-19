@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useCalculatorStore } from "../store/calculatorStore";
@@ -48,6 +49,7 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
     editingCartItemId,
     clearCurrentService,
   } = useCalculatorStore();
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const stepIdx = STEPS_ORDER.indexOf(step);
 
@@ -87,29 +89,30 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+    setSubmitError(null);
 
-    // Build aggregated breakdown from cart
     const cartTotal = cart.reduce((sum, item) => sum + item.priceTotal, 0);
-    // For multi-service: one line per service; single-service: full detail breakdown
     const allBreakdown =
       cart.length === 1
         ? cart[0].priceBreakdown
         : cart.map((item) => ({ label: item.serviceName, amount: item.priceTotal }));
     const primaryService = cart[0];
+    const duration = cart.length === 1 ? cart[0].duration : "По согласованию";
+    const serviceName = cart.length === 1
+      ? primaryService.serviceName
+      : `${primaryService.serviceName} + ещё ${cart.length - 1}`;
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
-      await supabase.from("orders").insert({
+      const { error } = await supabase.from("orders").insert({
         user_id: user?.id ?? null,
         email: contacts.email,
         name: contacts.name,
         category_id: primaryService.categoryId,
         category_name: primaryService.categoryName,
         service_id: primaryService.serviceId,
-        service_name: cart.length === 1
-          ? primaryService.serviceName
-          : `${primaryService.serviceName} + ещё ${cart.length - 1}`,
+        service_name: serviceName,
         field_values: cart.length === 1 ? primaryService.fieldValues : {},
         price_total: cartTotal,
         price_breakdown: allBreakdown,
@@ -118,30 +121,28 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
         address: contacts.address,
         comment: contacts.comment,
       });
+
+      if (error) throw error;
+
+      setPendingOrder({
+        serviceName,
+        categoryName: primaryService.categoryName,
+        duration,
+        scheduledDate: schedule.date,
+        scheduledTime: schedule.time,
+        priceTotal: cartTotal,
+        priceBreakdown: allBreakdown,
+        address: contacts.address,
+      });
+
+      reset();
+      navigate("/dashboard");
     } catch (err) {
       console.error("Order save error:", err);
+      setSubmitError("Не удалось создать заказ. Проверьте соединение и попробуйте снова.");
     } finally {
       setIsSubmitting(false);
     }
-
-    // Set pending order for dashboard payment modal
-    const duration = cart.length === 1 ? cart[0].duration : "По согласованию";
-
-    setPendingOrder({
-      serviceName: cart.length === 1
-        ? primaryService.serviceName
-        : `${primaryService.serviceName} + ещё ${cart.length - 1}`,
-      categoryName: primaryService.categoryName,
-      duration,
-      scheduledDate: schedule.date,
-      scheduledTime: schedule.time,
-      priceTotal: cartTotal,
-      priceBreakdown: allBreakdown,
-      address: contacts.address,
-    });
-
-    reset();
-    navigate("/dashboard");
   };
 
   const submitLabel =
@@ -194,22 +195,27 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
             </AnimatePresence>
 
             {showNavigation && (
-              <div className="mt-6 flex gap-3">
-                {canGoBack && (
-                  <button
-                    onClick={handleBack}
-                    className="px-6 py-3 rounded-xl border-2 border-gray-100 text-sm font-semibold text-gray-600 hover:border-gray-300 transition-all"
-                  >
-                    Назад
-                  </button>
+              <div className="mt-6 flex flex-col gap-2">
+                {submitError && (
+                  <p className="text-sm text-red-500 bg-red-50 rounded-xl px-4 py-2.5">{submitError}</p>
                 )}
-                <button
-                  onClick={handleNext}
-                  disabled={isSubmitting}
-                  className="px-8 py-3 rounded-xl bg-black text-white text-sm font-semibold hover:bg-gray-800 disabled:opacity-50 transition-all active:scale-95"
-                >
-                  {isSubmitting ? "Оформляем..." : submitLabel}
-                </button>
+                <div className="flex gap-3">
+                  {canGoBack && (
+                    <button
+                      onClick={handleBack}
+                      className="px-6 py-3 rounded-xl border-2 border-gray-100 text-sm font-semibold text-gray-600 hover:border-gray-300 transition-all"
+                    >
+                      Назад
+                    </button>
+                  )}
+                  <button
+                    onClick={handleNext}
+                    disabled={isSubmitting}
+                    className="px-8 py-3 rounded-xl bg-black text-white text-sm font-semibold hover:bg-gray-800 disabled:opacity-50 transition-all active:scale-95"
+                  >
+                    {isSubmitting ? "Оформляем..." : submitLabel}
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -263,22 +269,27 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
 
             {/* Desktop nav */}
             {showNavigation && (
-              <div className="mt-8 hidden lg:flex gap-3">
-                {canGoBack && (
-                  <button
-                    onClick={handleBack}
-                    className="px-6 py-3 rounded-xl border-2 border-gray-100 text-sm font-semibold text-gray-600 hover:border-gray-300 transition-all"
-                  >
-                    Назад
-                  </button>
+              <div className="mt-8 hidden lg:flex flex-col gap-2">
+                {submitError && (
+                  <p className="text-sm text-red-500 bg-red-50 rounded-xl px-4 py-2.5">{submitError}</p>
                 )}
-                <button
-                  onClick={handleNext}
-                  disabled={isSubmitting}
-                  className="px-8 py-3 rounded-xl bg-black text-white text-sm font-semibold hover:bg-gray-800 disabled:opacity-50 transition-all active:scale-95"
-                >
-                  {isSubmitting ? "Оформляем..." : submitLabel}
-                </button>
+                <div className="flex gap-3">
+                  {canGoBack && (
+                    <button
+                      onClick={handleBack}
+                      className="px-6 py-3 rounded-xl border-2 border-gray-100 text-sm font-semibold text-gray-600 hover:border-gray-300 transition-all"
+                    >
+                      Назад
+                    </button>
+                  )}
+                  <button
+                    onClick={handleNext}
+                    disabled={isSubmitting}
+                    className="px-8 py-3 rounded-xl bg-black text-white text-sm font-semibold hover:bg-gray-800 disabled:opacity-50 transition-all active:scale-95"
+                  >
+                    {isSubmitting ? "Оформляем..." : submitLabel}
+                  </button>
+                </div>
               </div>
             )}
 
