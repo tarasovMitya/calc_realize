@@ -41,6 +41,8 @@ import { AdminVerificationPage } from "./admin/pages/VerificationPage";
 import { AdminAnalyticsPage } from "./admin/pages/AnalyticsPage";
 import { AdminSettingsPage } from "./admin/pages/SettingsPage";
 import { AdminClientsPage } from "./admin/pages/ClientsPage";
+import { SecurityPage } from "./dashboard/pages/SecurityPage";
+import { ClientDisputesPage } from "./dashboard/pages/ClientDisputesPage";
 import { AdminEventLogsPage } from "./admin/pages/EventLogsPage";
 import { AdminChatsPage } from "./admin/pages/ChatsPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -139,6 +141,8 @@ function App() {
           <Route path="profile" element={<ProfileSettingsPage />} />
           <Route path="support" element={<SupportPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="security" element={<SecurityPage />} />
+          <Route path="disputes" element={<ClientDisputesPage />} />
         </Route>
 
         {/* Performer auth */}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ChevronLeft, RotateCcw, MessageCircle, CreditCard, XCircle, AlertTriangle } from "lucide-react";
+import { ChevronLeft, RotateCcw, MessageCircle, CreditCard, XCircle, AlertTriangle, ShieldAlert } from "lucide-react";
+import { WarningCard } from "../../components/ui/WarningCard";
 import { LiveTrackingMap } from "../components/LiveTrackingMap";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDashboardStore } from "../store/dashboardStore";
@@ -166,6 +167,16 @@ export function OrderDetailsPage() {
           <Timeline events={order.timeline} />
         </Section>
 
+        {/* Payment safety warning */}
+        {(order.status === "assigned" || order.status === "on_the_way" || order.status === "in_progress") && (
+          <WarningCard variant="warning" title="Оплачивайте только через платформу">
+            <span className="flex items-center gap-1.5">
+              <ShieldAlert size={12} className="shrink-0" />
+              Оплата наличными исполнителю лишает вас защиты сервиса и права на компенсацию при споре.
+            </span>
+          </WarningCard>
+        )}
+
         {/* Dispute banner */}
         {order.status === "dispute_opened" && (
           <div className="rounded-2xl border border-orange-200 bg-orange-50 p-4 flex flex-col gap-3">
@@ -297,7 +308,7 @@ export function OrderDetailsPage() {
       <DisputeModal
         isOpen={showDisputeModal}
         onClose={() => setShowDisputeModal(false)}
-        onSubmit={async (comment) => { await openDispute(order.id, comment); }}
+        onSubmit={async (comment, _reason, _photos) => { await openDispute(order.id, comment); }}
       />
       {showRatingModal && order.performer && !order.clientRating && !ratingWasSkipped && (
         <RatingModal

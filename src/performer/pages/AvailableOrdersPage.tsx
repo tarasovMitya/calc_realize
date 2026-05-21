@@ -6,6 +6,7 @@ import { usePerformerStore } from "../store/performerStore";
 import { VerificationGate } from "../verification/VerificationGate";
 import { useSharedOrdersStore } from "../../store/sharedOrdersStore";
 import { AvailableOrderCard } from "../components/cards/AvailableOrderCard";
+import { AcceptOrderModal } from "../components/AcceptOrderModal";
 import { pluralRu } from "../../utils/priceCalculator";
 import type { PerformerOrder } from "../types";
 import type { SharedOrder } from "../../store/sharedOrdersStore";
@@ -64,6 +65,7 @@ export function AvailableOrdersPage() {
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [unavailableIds, setUnavailableIds] = useState<Set<string>>(new Set());
   const [toast, setToast] = useState<string | null>(null);
+  const [pendingOrder, setPendingOrder] = useState<PerformerOrder | null>(null);
 
   const allOrders = [...realOrders, ...availableOrders];
   const sorted = sortOrders(allOrders, sortBy);
@@ -151,7 +153,7 @@ export function AvailableOrdersPage() {
               <AvailableOrderCard
                 key={order.id}
                 order={order}
-                onAccept={() => handleAccept(order.id)}
+                onAccept={() => setPendingOrder(order)}
                 onReject={() => rejectOrder(order.id)}
                 isAccepting={acceptingId === order.id}
                 isUnavailable={unavailableIds.has(order.id)}
@@ -160,6 +162,14 @@ export function AvailableOrdersPage() {
           </div>
         </AnimatePresence>
       )}
+      <AcceptOrderModal
+        order={pendingOrder}
+        onConfirm={async () => {
+          if (pendingOrder) await handleAccept(pendingOrder.id);
+          setPendingOrder(null);
+        }}
+        onCancel={() => setPendingOrder(null)}
+      />
     </div>
     </VerificationGate>
   );

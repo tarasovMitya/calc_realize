@@ -10,6 +10,8 @@ import {
   Bell,
   Zap,
   LogOut,
+  Shield,
+  ShieldAlert,
 } from "lucide-react";
 import { useDashboardStore } from "../../store/dashboardStore";
 import { useAuthStore } from "../../../store/authStore";
@@ -20,6 +22,8 @@ const navItems = [
   { to: "/dashboard/history", label: "История", icon: Clock },
   { to: "/dashboard/addresses", label: "Адреса", icon: MapPin },
   { to: "/dashboard/payments", label: "Оплата", icon: CreditCard },
+  { to: "/dashboard/disputes", label: "Споры", icon: ShieldAlert },
+  { to: "/dashboard/security", label: "Безопасность", icon: Shield },
   { to: "/dashboard/profile", label: "Профиль", icon: User },
   { to: "/dashboard/support", label: "Поддержка", icon: HelpCircle },
   { to: "/dashboard/notifications", label: "Уведомления", icon: Bell },

@@ -1,15 +1,19 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Phone, MapPin, Clock, ArrowLeft, Navigation, Check, LocateFixed, AlertTriangle, MessageCircle, Loader2 } from "lucide-react";
+import { Phone, MapPin, Clock, ArrowLeft, Navigation, Check, LocateFixed, AlertTriangle, MessageCircle, Loader2, Camera, Plus } from "lucide-react";
 import { usePerformerStore } from "../store/performerStore";
 import { useAuthStore } from "../../store/authStore";
 import { useChatStore } from "../../store/chatStore";
 import { ChatDrawer } from "../../chat/components/ChatDrawer";
 import { PerformerStatusBadge } from "../components/ui/StatusBadge";
 import { CompletionModal } from "../components/CompletionModal";
+import { AdditionalWorkModal } from "../components/AdditionalWorkModal";
 import { OrderLocationMap } from "../components/OrderLocationMap";
+import { DropZone } from "../../components/ui/DropZone";
+import { WarningCard } from "../../components/ui/WarningCard";
 import { formatPrice } from "../../utils/priceCalculator";
+import type { PhotoFile } from "../../components/ui/DropZone";
 import type { PerformerOrderStatus } from "../types";
 
 const statusFlow: { from: PerformerOrderStatus; to: PerformerOrderStatus; label: string }[] = [
@@ -25,9 +29,11 @@ export function PerformerOrderDetailsPage() {
   const { user } = useAuthStore();
   const { openChatForOrder } = useChatStore();
   const [showModal, setShowModal] = useState(false);
+  const [showAdditionalWork, setShowAdditionalWork] = useState(false);
   const [showGeoSheet, setShowGeoSheet] = useState(false);
   const [geoBlocked, setGeoBlocked] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [beforePhotos, setBeforePhotos] = useState<PhotoFile[]>([]);
 
   const order =
     activeOrders.find((o) => o.id === id) ??
@@ -79,7 +85,7 @@ export function PerformerOrderDetailsPage() {
     setShowGeoSheet(false);
   };
 
-  const handleCompletionSubmit = async (comment: string) => {
+  const handleCompletionSubmit = async (comment: string, _photos: File[]) => {
     await submitCompletion(order.id, comment);
     setShowModal(false);
   };
@@ -162,6 +168,46 @@ export function PerformerOrderDetailsPage() {
               <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Комментарий клиента</p>
               <p className="text-sm text-gray-700">{order.comment}</p>
             </div>
+          )}
+
+          {/* Фото ДО — показываем пока заказ активен */}
+          {(order.status === "accepted" || order.status === "on_the_way" || order.status === "in_progress") && (
+            <div className="border border-gray-100 rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Camera size={14} className="text-gray-500" />
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Фото ДО начала работ
+                  {beforePhotos.length === 0 && <span className="text-red-400 ml-1">*</span>}
+                </p>
+                {beforePhotos.length > 0 && (
+                  <span className="ml-auto text-xs font-semibold text-emerald-600">{beforePhotos.length} фото</span>
+                )}
+              </div>
+              <DropZone
+                label="Сфотографируйте помещение до начала"
+                hint="Минимум 1 фото — защищает вас от претензий"
+                maxFiles={6}
+                files={beforePhotos}
+                onChange={setBeforePhotos}
+                required
+              />
+              {beforePhotos.length === 0 && (
+                <WarningCard variant="warning" className="mt-2.5">
+                  Без фото ДО вы не защищены от необоснованных претензий клиента
+                </WarningCard>
+              )}
+            </div>
+          )}
+
+          {/* Доп. работы кнопка — только в процессе */}
+          {order.status === "in_progress" && (
+            <button
+              onClick={() => setShowAdditionalWork(true)}
+              className="flex items-center justify-center gap-2 py-3 rounded-2xl border-2 border-dashed border-gray-200 text-sm font-semibold text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-all"
+            >
+              <Plus size={16} />
+              Запросить доп. работы
+            </button>
           )}
 
           {/* Completion comment (waiting confirmation) */}
@@ -258,6 +304,14 @@ export function PerformerOrderDetailsPage() {
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         onSubmit={handleCompletionSubmit}
+      />
+
+      <AdditionalWorkModal
+        isOpen={showAdditionalWork}
+        onClose={() => setShowAdditionalWork(false)}
+        onSubmit={async (data) => {
+          console.log("Additional work request:", data);
+        }}
       />
 
       <ChatDrawer
