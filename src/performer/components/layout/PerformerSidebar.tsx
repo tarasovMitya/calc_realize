@@ -8,6 +8,7 @@ import {
   Bell,
   User,
   LogOut,
+  BookOpen,
 } from "lucide-react";
 import { usePerformerStore } from "../../store/performerStore";
 import { useAuthStore } from "../../../store/authStore";
@@ -20,6 +21,7 @@ const nav = [
   { to: "/performer/schedule", label: "Расписание", icon: Calendar },
   { to: "/performer/notifications", label: "Уведомления", icon: Bell },
   { to: "/performer/profile", label: "Профиль", icon: User },
+  { to: "/performer/guide", label: "Руководство", icon: BookOpen },
 ];
 
 export function PerformerSidebar() {

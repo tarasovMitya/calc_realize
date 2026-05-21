@@ -27,6 +27,7 @@ import { SchedulePage } from "./performer/pages/SchedulePage";
 import { PerformerProfilePage } from "./performer/pages/ProfilePage";
 import { PerformerNotificationsPage } from "./performer/pages/NotificationsPage";
 import { PerformerOnboarding } from "./performer/onboarding/PerformerOnboarding";
+import { OnboardingGuidePage } from "./performer/pages/OnboardingGuidePage";
 import { PerformerAuthPage } from "./performer/pages/PerformerAuthPage";
 import { PerformerVerificationPage } from "./performer/pages/VerificationPage";
 import { PerformerGuard } from "./performer/components/PerformerGuard";
@@ -62,6 +63,8 @@ import { MasterServicePage } from "./pages/masters/MasterServicePage";
 import { TermsPage } from "./pages/legal/TermsPage";
 import { PrivacyPage } from "./pages/legal/PrivacyPage";
 import { ContactsPage } from "./pages/legal/ContactsPage";
+import { RulesPage } from "./pages/legal/RulesPage";
+import { FinancialModelPage } from "./pages/internal/FinancialModelPage";
 
 function PageTracker() {
   usePageTracking();
@@ -118,6 +121,7 @@ function App() {
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/contacts" element={<ContactsPage />} />
+        <Route path="/rules" element={<RulesPage />} />
 
         {/* Auth */}
         <Route path="/auth" element={<AuthPage />} />
@@ -167,6 +171,7 @@ function App() {
             <Route path="schedule" element={<SchedulePage />} />
             <Route path="profile" element={<PerformerProfilePage />} />
             <Route path="notifications" element={<PerformerNotificationsPage />} />
+            <Route path="guide" element={<OnboardingGuidePage />} />
           </Route>
         </Route>
         {/* Admin panel — requires admin role */}
@@ -183,6 +188,7 @@ function App() {
             <Route path="analytics" element={<AdminAnalyticsPage />} />
             <Route path="settings" element={<AdminSettingsPage />} />
             <Route path="events" element={<AdminEventLogsPage />} />
+            <Route path="financial-model" element={<FinancialModelPage />} />
           </Route>
         </Route>
 
