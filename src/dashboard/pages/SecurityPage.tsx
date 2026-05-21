@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Smartphone, Mail, Key, Laptop, Trash2, X, ChevronRight, Check, LogOut, ShieldCheck } from "lucide-react";
+import { Shield, Smartphone, Mail, Key, Laptop, Trash2, X, ChevronRight, LogOut, ShieldCheck } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
 import { useNavigate } from "react-router-dom";
 
