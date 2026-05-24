@@ -71,7 +71,7 @@ export function TMAApp() {
         if (!rawInitData) return;
 
         const res = await fetch(
-          "https://hwpvusxzfzmnbcvztrzc.supabase.co/functions/v1/telegram-auth",
+          `${window.location.origin}/supabase-proxy/functions/v1/telegram-auth`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },

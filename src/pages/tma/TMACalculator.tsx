@@ -82,8 +82,9 @@ export function TMACalculator({ user, onNavigate }: Props) {
       });
       if (dbErr) throw dbErr;
       setStep("success");
-    } catch {
-      setError("Ошибка при отправке. Попробуйте ещё раз.");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : JSON.stringify(e);
+      setError(`Ошибка: ${msg}`);
     } finally {
       setSubmitting(false);
     }

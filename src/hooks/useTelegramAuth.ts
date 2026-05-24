@@ -16,10 +16,12 @@ declare global {
   }
 }
 
-const FUNCTION_URL = "https://hwpvusxzfzmnbcvztrzc.supabase.co/functions/v1/telegram-auth";
+function getFunctionUrl() {
+  return `${window.location.origin}/supabase-proxy/functions/v1/telegram-auth`;
+}
 
 export async function signInWithTelegram(tgUser: TelegramUser): Promise<void> {
-  const res = await fetch(FUNCTION_URL, {
+  const res = await fetch(getFunctionUrl(), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(tgUser),
