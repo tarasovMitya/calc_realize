@@ -21,23 +21,32 @@ function getFunctionUrl() {
 }
 
 export async function signInWithTelegram(tgUser: TelegramUser): Promise<void> {
-  const res = await fetch(getFunctionUrl(), {
+  const url = getFunctionUrl();
+  console.log("[tg-auth] calling", url, tgUser);
+
+  const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(tgUser),
   });
 
+  const raw = await res.text();
+  console.log("[tg-auth] response", res.status, raw);
+
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error ?? "Ошибка авторизации через Telegram");
+    const err = (() => { try { return JSON.parse(raw); } catch { return {}; } })();
+    throw new Error(err.error ?? `Ошибка ${res.status}: ${raw.slice(0, 120)}`);
   }
 
-  const data = await res.json();
+  const data = (() => { try { return JSON.parse(raw); } catch { return {}; } })();
   const tokenHash = data.token_hash;
-  if (!tokenHash) throw new Error("Не удалось получить токен авторизации");
+  console.log("[tg-auth] token_hash:", tokenHash, "keys:", Object.keys(data));
+
+  if (!tokenHash) throw new Error(`token_hash отсутствует. Ответ: ${raw.slice(0, 200)}`);
 
   const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: "magiclink" });
-  if (error) throw new Error(error.message);
+  console.log("[tg-auth] verifyOtp error:", error);
+  if (error) throw new Error(`verifyOtp: ${error.message}`);
 }
 
 export async function linkTelegramToAccount(tgUser: TelegramUser): Promise<void> {
