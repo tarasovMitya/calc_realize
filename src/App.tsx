@@ -65,6 +65,7 @@ import { PrivacyPage } from "./pages/legal/PrivacyPage";
 import { ContactsPage } from "./pages/legal/ContactsPage";
 import { RulesPage } from "./pages/legal/RulesPage";
 import { FinancialModelPage } from "./pages/internal/FinancialModelPage";
+import { TMAApp } from "./pages/tma/TMAApp";
 
 function PageTracker() {
   usePageTracking();
@@ -100,6 +101,7 @@ function App() {
         {/* Public */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/calculator" element={<Calculator />} />
+        <Route path="/app" element={<TMAApp />} />
 
         {/* Service pages */}
         <Route path="/services/:slug" element={<ServicePage />} />
