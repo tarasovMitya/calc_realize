@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { supabase } from "../lib/supabase";
 import { useAuthStore } from "../store/authStore";
 import { trackEvent } from "../lib/analytics";
+import { signInWithTelegram, loadTelegramWidget, type TelegramUser } from "../hooks/useTelegramAuth";
 
 type SubStep = "email" | "otp";
 
@@ -27,6 +28,27 @@ export function AuthPage() {
   const [resentMessage, setResentMessage] = useState("");
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const [tgLoading, setTgLoading] = useState(false);
+  const [tgError, setTgError] = useState("");
+  const tgContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!tgContainerRef.current) return;
+    const script = loadTelegramWidget("slot_home_bot", async (tgUser: TelegramUser) => {
+      setTgLoading(true);
+      setTgError("");
+      try {
+        trackEvent("login_started", { method: "telegram" });
+        await signInWithTelegram(tgUser);
+        trackEvent("login_success", { method: "telegram" });
+      } catch (e) {
+        setTgError(e instanceof Error ? e.message : "Ошибка входа через Telegram");
+        setTgLoading(false);
+      }
+    });
+    tgContainerRef.current.appendChild(script);
+  }, []);
 
   useEffect(() => {
     return () => { if (cooldownRef.current) clearInterval(cooldownRef.current); };
@@ -176,7 +198,25 @@ export function AuthPage() {
             >
               <div className="text-center">
                 <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Войти</h1>
-                <p className="text-gray-500 mt-2">Отправим код подтверждения на email</p>
+                <p className="text-gray-500 mt-2">Выберите способ входа</p>
+              </div>
+
+              {/* Telegram widget */}
+              <div className="flex flex-col items-center gap-2">
+                <div ref={tgContainerRef} className="flex justify-center" />
+                {tgLoading && (
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <div className="w-4 h-4 border-2 border-gray-300 border-t-black rounded-full animate-spin" />
+                    Входим через Telegram...
+                  </div>
+                )}
+                {tgError && <p className="text-red-500 text-sm text-center">{tgError}</p>}
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-gray-100" />
+                <span className="text-xs text-gray-400 uppercase tracking-wider">или</span>
+                <div className="flex-1 h-px bg-gray-100" />
               </div>
 
               <form onSubmit={handleSendOtp} className="flex flex-col gap-3">

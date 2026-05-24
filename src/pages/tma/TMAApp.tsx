@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { useSignal, miniApp, backButton, initDataUser, restoreInitData } from "@telegram-apps/sdk-react";
+import { useSignal, miniApp, backButton, initDataUser, restoreInitData, retrieveRawInitData } from "@telegram-apps/sdk-react";
 import type { User } from "@telegram-apps/sdk-react";
+import { supabase } from "../../lib/supabase";
 import { TMAHome } from "./TMAHome";
 import { TMACalculator } from "./TMACalculator";
 import { TMAOrders } from "./TMAOrders";
@@ -19,6 +20,36 @@ export function TMAApp() {
     miniApp.setHeaderColor("#0f172a");
     miniApp.setBackgroundColor("#ffffff");
   }, [isMiniAppMounted]);
+
+  // Auto sign-in to Supabase using Telegram initData
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) return; // already logged in
+
+        const rawInitData = retrieveRawInitData();
+        if (!rawInitData) return;
+
+        const res = await fetch(
+          "https://hwpvusxzfzmnbcvztrzc.supabase.co/functions/v1/telegram-auth",
+          { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ initData: rawInitData }) }
+        );
+        if (!res.ok) return;
+
+        const { action_link } = await res.json();
+        if (!action_link) return;
+
+        const url = new URL(action_link);
+        const tokenHash = url.searchParams.get("token_hash");
+        if (!tokenHash) return;
+
+        await supabase.auth.verifyOtp({ token_hash: tokenHash, type: "magiclink" });
+      } catch {
+        // silent — TMA works without Supabase session too
+      }
+    })();
+  }, []);
 
   // Back button support
   useEffect(() => {
