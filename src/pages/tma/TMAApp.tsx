@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TMAHome } from "./TMAHome";
 import { TMACalculator } from "./TMACalculator";
 import { TMAOrders } from "./TMAOrders";
@@ -19,6 +19,7 @@ function getRawInitData(): string | undefined {
 export function TMAApp() {
   const [page, setPage] = useState<TMAPage>("home");
   const [tgUser, setTgUser] = useState<any>(undefined);
+  const backHandlerRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     // Initialize Telegram WebApp via native API (no SDK crashes)
@@ -33,20 +34,27 @@ export function TMAApp() {
       } catch { /* ignore */ }
     }
 
-    // Deep link: ?service=cleaning → open calculator
-    const service = new URLSearchParams(window.location.search).get("service");
+    // Deep links: ?service= → calculator, ?tab= → specific tab
+    const params = new URLSearchParams(window.location.search);
+    const service = params.get("service");
+    const tab = params.get("tab") as TMAPage | null;
     if (service) setPage("calculator");
+    else if (tab && ["calculator", "orders", "profile"].includes(tab)) setPage(tab);
   }, []);
 
-  // Back button via native WebApp API
+  // Back button via native WebApp API — use stable handler ref to avoid accumulation
   useEffect(() => {
     const tg = (window as any).Telegram?.WebApp;
     if (!tg?.BackButton) return;
     try {
+      // Remove previous handler before adding new one
+      tg.BackButton.offClick(backHandlerRef.current);
       if (page !== "home") {
+        backHandlerRef.current = () => setPage("home");
         tg.BackButton.show();
-        tg.BackButton.onClick(() => setPage("home"));
+        tg.BackButton.onClick(backHandlerRef.current);
       } else {
+        backHandlerRef.current = () => {};
         tg.BackButton.hide();
       }
     } catch { /* ignore */ }

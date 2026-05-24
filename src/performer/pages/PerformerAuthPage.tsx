@@ -6,6 +6,7 @@ import { Wrench } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import { useAuthStore } from "../../store/authStore";
 import { dbLoadPerformerProfile } from "../../lib/db";
+import { signInWithTelegram, loadTelegramWidget, type TelegramUser } from "../../hooks/useTelegramAuth";
 
 type SubStep = "email" | "otp";
 
@@ -28,9 +29,40 @@ export function PerformerAuthPage() {
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const [tgLoading, setTgLoading] = useState(false);
+  const [tgError, setTgError] = useState("");
+  const tgContainerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     return () => { if (cooldownRef.current) clearInterval(cooldownRef.current); };
   }, []);
+
+  // Load Telegram widget on email step
+  useEffect(() => {
+    if (subStep !== "email" || !tgContainerRef.current) return;
+    const script = loadTelegramWidget("slot_home_bot", async (tgUser: TelegramUser) => {
+      setTgLoading(true);
+      setTgError("");
+      try {
+        await signInWithTelegram(tgUser);
+        await supabase.auth.updateUser({ data: { performer_role: true } });
+        const { data: { user: freshUser } } = await supabase.auth.getUser();
+        if (freshUser?.user_metadata?.performer_onboarded) {
+          navigate("/performer", { replace: true }); return;
+        }
+        const existingProfile = await dbLoadPerformerProfile(freshUser?.id ?? "");
+        if (existingProfile?.name) {
+          await supabase.auth.updateUser({ data: { performer_role: true, performer_onboarded: true } });
+          navigate("/performer", { replace: true }); return;
+        }
+        navigate("/performer/onboarding", { replace: true });
+      } catch (e) {
+        setTgError(e instanceof Error ? e.message : "Ошибка входа через Telegram");
+        setTgLoading(false);
+      }
+    });
+    tgContainerRef.current.appendChild(script);
+  }, [subStep]);
 
   // If already authenticated as performer, redirect
   useEffect(() => {
@@ -180,7 +212,25 @@ export function PerformerAuthPage() {
             >
               <div className="text-center">
                 <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Вход в кабинет</h1>
-                <p className="text-gray-500 mt-2">Отправим код подтверждения на email</p>
+                <p className="text-gray-500 mt-2">Выберите способ входа</p>
+              </div>
+
+              {/* Telegram widget */}
+              <div className="flex flex-col items-center gap-2">
+                <div ref={tgContainerRef} className="flex justify-center" />
+                {tgLoading && (
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <div className="w-4 h-4 border-2 border-gray-300 border-t-black rounded-full animate-spin" />
+                    Входим через Telegram...
+                  </div>
+                )}
+                {tgError && <p className="text-red-500 text-sm text-center">{tgError}</p>}
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-gray-100" />
+                <span className="text-xs text-gray-400 uppercase tracking-wider">или email</span>
+                <div className="flex-1 h-px bg-gray-100" />
               </div>
 
               <form onSubmit={handleSendOtp} className="flex flex-col gap-3">
