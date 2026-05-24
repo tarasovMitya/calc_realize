@@ -7,7 +7,8 @@ import { useCalculatorStore } from "../../store/calculatorStore";
 import { useAuthStore } from "../../store/authStore";
 import { useDashboardStore } from "../../dashboard/store/dashboardStore";
 import { AddressSuggest } from "../ui/AddressSuggest";
-import { signInWithTelegram, loadTelegramWidget, type TelegramUser } from "../../hooks/useTelegramAuth";
+import { signInWithTelegram, type TelegramUser } from "../../hooks/useTelegramAuth";
+import { TelegramLoginButton } from "../auth/TelegramLoginButton";
 
 type SubStep = "email" | "otp" | "profile";
 
@@ -40,28 +41,22 @@ export function AuthStep() {
 
   const [tgLoading, setTgLoading] = useState(false);
   const [tgError, setTgError] = useState("");
-  const tgContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     return () => { if (cooldownRef.current) clearInterval(cooldownRef.current); };
   }, []);
 
-  // Load Telegram widget on email substep
-  useEffect(() => {
-    if (subStep !== "email" || !tgContainerRef.current) return;
-    const script = loadTelegramWidget("slot_home_bot", async (tgUser: TelegramUser) => {
-      setTgLoading(true);
-      setTgError("");
-      try {
-        await signInWithTelegram(tgUser);
-        // isAuthenticated effect will detect the session and transition to profile
-      } catch (e) {
-        setTgError(e instanceof Error ? e.message : "Ошибка входа через Telegram");
-        setTgLoading(false);
-      }
-    });
-    tgContainerRef.current.appendChild(script);
-  }, [subStep]);
+  const handleTelegramAuth = async (tgUser: TelegramUser) => {
+    setTgLoading(true);
+    setTgError("");
+    try {
+      await signInWithTelegram(tgUser);
+      // isAuthenticated effect will detect the session and transition to profile
+    } catch (e) {
+      setTgError(e instanceof Error ? e.message : "Ошибка входа через Telegram");
+      setTgLoading(false);
+    }
+  };
 
   const startCooldown = (seconds = 60) => {
     setCooldown(seconds);
@@ -281,16 +276,10 @@ export function AuthStep() {
               </p>
             </div>
 
-            {/* Telegram widget */}
-            <div className="flex flex-col items-center gap-2">
-              <div ref={tgContainerRef} className="flex justify-center" />
-              {tgLoading && (
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <div className="w-4 h-4 border-2 border-gray-300 border-t-black rounded-full animate-spin" />
-                  Входим через Telegram...
-                </div>
-              )}
-              {tgError && <p className="text-red-500 text-sm text-center">{tgError}</p>}
+            {/* Telegram login */}
+            <div>
+              <TelegramLoginButton onAuth={handleTelegramAuth} loading={tgLoading} />
+              {tgError && <p className="text-red-500 text-sm text-center mt-1">{tgError}</p>}
             </div>
 
             <div className="flex items-center gap-3">

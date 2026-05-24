@@ -7,7 +7,8 @@ import { supabase } from "../../lib/supabase";
 import { useAuthModalStore } from "../../store/authModalStore";
 import { useAuthStore } from "../../store/authStore";
 import { dbSaveProfile, dbLoadPerformerProfile } from "../../lib/db";
-import { signInWithTelegram, loadTelegramWidget, type TelegramUser } from "../../hooks/useTelegramAuth";
+import { signInWithTelegram, type TelegramUser } from "../../hooks/useTelegramAuth";
+import { TelegramLoginButton } from "./TelegramLoginButton";
 
 const stepAnim = {
   initial: { opacity: 0, x: 18 },
@@ -36,7 +37,6 @@ export function AuthModal() {
 
   const [tgLoading, setTgLoading] = useState(false);
   const [tgError, setTgError] = useState("");
-  const tgContainerRef = useRef<HTMLDivElement>(null);
 
   const emailForm = useForm<{ email: string }>();
   const registerForm = useForm<{ name: string; phone: string; email: string }>();
@@ -57,36 +57,31 @@ export function AuthModal() {
     }
   }, [isOpen]);
 
-  // Load Telegram widget when email step is shown
-  useEffect(() => {
-    if (!isOpen || step !== "email" || !tgContainerRef.current) return;
-    const script = loadTelegramWidget("slot_home_bot", async (tgUser: TelegramUser) => {
-      setTgLoading(true);
-      setTgError("");
-      try {
-        await signInWithTelegram(tgUser);
-        if (role === "performer") {
-          await supabase.auth.updateUser({ data: { performer_role: true } });
-          const { data: { user: freshUser } } = await supabase.auth.getUser();
-          if (freshUser?.user_metadata?.performer_onboarded) {
-            reset(); navigate("/performer"); return;
-          }
-          const existing = await dbLoadPerformerProfile(freshUser?.id ?? "");
-          if (existing?.name) {
-            await supabase.auth.updateUser({ data: { performer_role: true, performer_onboarded: true } });
-            reset(); navigate("/performer"); return;
-          }
-          reset(); navigate("/performer/onboarding"); return;
+  const handleTelegramAuth = async (tgUser: TelegramUser) => {
+    setTgLoading(true);
+    setTgError("");
+    try {
+      await signInWithTelegram(tgUser);
+      if (role === "performer") {
+        await supabase.auth.updateUser({ data: { performer_role: true } });
+        const { data: { user: freshUser } } = await supabase.auth.getUser();
+        if (freshUser?.user_metadata?.performer_onboarded) {
+          reset(); navigate("/performer"); return;
         }
-        reset();
-        navigate("/dashboard");
-      } catch (e) {
-        setTgError(e instanceof Error ? e.message : "Ошибка входа через Telegram");
-        setTgLoading(false);
+        const existing = await dbLoadPerformerProfile(freshUser?.id ?? "");
+        if (existing?.name) {
+          await supabase.auth.updateUser({ data: { performer_role: true, performer_onboarded: true } });
+          reset(); navigate("/performer"); return;
+        }
+        reset(); navigate("/performer/onboarding"); return;
       }
-    });
-    tgContainerRef.current.appendChild(script);
-  }, [isOpen, step]);
+      reset();
+      navigate("/dashboard");
+    } catch (e) {
+      setTgError(e instanceof Error ? e.message : "Ошибка входа через Telegram");
+      setTgLoading(false);
+    }
+  };
 
   // ESC to close
   useEffect(() => {
@@ -428,16 +423,10 @@ export function AuthModal() {
                         Выберите способ входа
                       </p>
 
-                      {/* Telegram widget */}
-                      <div className="flex flex-col items-center gap-2 mb-4">
-                        <div ref={tgContainerRef} className="flex justify-center" />
-                        {tgLoading && (
-                          <div className="flex items-center gap-2 text-sm text-gray-500">
-                            <div className="w-4 h-4 border-2 border-gray-300 border-t-black rounded-full animate-spin" />
-                            Входим через Telegram...
-                          </div>
-                        )}
-                        {tgError && <p className="text-red-500 text-xs text-center">{tgError}</p>}
+                      {/* Telegram login */}
+                      <div className="mb-4">
+                        <TelegramLoginButton onAuth={handleTelegramAuth} loading={tgLoading} />
+                        {tgError && <p className="text-red-500 text-xs text-center mt-1">{tgError}</p>}
                       </div>
 
                       <div className="flex items-center gap-3 mb-4">
