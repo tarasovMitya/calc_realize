@@ -101,32 +101,23 @@ function supabaseAdminRequest(method, apiPath, body) {
 
 async function createTelegramSession(tgId, meta) {
   const email = `tg_${tgId}@slot-home.ru`;
+  const userMeta = { ...meta, telegram_id: tgId, provider: "telegram" };
 
-  const getRes = await supabaseAdminRequest("GET", `/auth/v1/admin/users?filter=email.eq.${encodeURIComponent(email)}&page=1&per_page=1`, null);
-  const existingUsers = Array.isArray(getRes.body?.users) ? getRes.body.users : [];
-
-  let userId;
-  if (existingUsers.length > 0) {
-    userId = existingUsers[0].id;
-    await supabaseAdminRequest("PUT", `/auth/v1/admin/users/${userId}`, {
-      user_metadata: { ...meta, telegram_id: tgId, provider: "telegram" },
-    });
-  } else {
-    const createRes = await supabaseAdminRequest("POST", "/auth/v1/admin/users", {
-      email,
-      email_confirm: true,
-      user_metadata: { ...meta, telegram_id: tgId, provider: "telegram" },
-    });
-    if (!createRes.body?.id) throw new Error(`Create user failed: ${JSON.stringify(createRes.body)}`);
-    userId = createRes.body.id;
-  }
-
+  // generate_link creates user if not exists, or generates link for existing user
   const linkRes = await supabaseAdminRequest("POST", "/auth/v1/admin/generate_link", {
     type: "magiclink",
     email,
+    data: userMeta,
   });
   const hashed_token = linkRes.body?.properties?.hashed_token || linkRes.body?.hashed_token;
   if (!hashed_token) throw new Error(`generateLink failed: ${JSON.stringify(linkRes.body)}`);
+
+  const userId = linkRes.body?.properties?.user_id || linkRes.body?.user?.id;
+  if (userId) {
+    await supabaseAdminRequest("PUT", `/auth/v1/admin/users/${userId}`, {
+      user_metadata: userMeta,
+    }).catch(() => {});
+  }
 
   return { token_hash: hashed_token, user_id: userId, email };
 }
