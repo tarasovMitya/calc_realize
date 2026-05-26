@@ -12,5 +12,6 @@ FROM node:20-alpine
 WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY server.js ./server.js
+RUN npm install pg jsonwebtoken --no-save
 EXPOSE 8080
 CMD ["node", "server.js"]
