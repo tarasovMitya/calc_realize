@@ -4,7 +4,7 @@
 
 ---
 
-## Текущее состояние (2026-05-26)
+## Текущее состояние (2026-05-27)
 
 ### Что работает
 - Деплой через `git push release main && git push origin main` (Railway цепляет `calc_realize.git`)
@@ -12,10 +12,12 @@
 - Telegram Widget auth flow: виджет → `/api/telegram-auth` → `token_hash` → `verifyOtp`
 - TMA (Mini App) auto sign-in через `initData`
 - Ошибки пишутся в `error_logs` в Supabase, видны в /admin/logs
+- **MVP TEST MODE:** заказы создаются без оплаты (ENABLE_PAYMENTS=false), сразу отправляются исполнителям
 
 ### Что сломано / не проверено
 - Telegram Widget auth: задеплоен фикс `email_exists` (422), но не тестировался вживую после деплоя
 - Telegram Link mode (привязка tg к существующему аккаунту) — не тестировалась
+- MVP flow end-to-end: калькулятор → заказ без оплаты → исполнитель принимает — не тестировался в проде
 
 ---
 
@@ -100,8 +102,29 @@ cd /Users/milty/Documents/vscode/calc && npx tsc -b --noEmit
 
 ---
 
+## MVP TEST MODE — что изменилось (2026-05-27)
+
+### Новые файлы
+- `src/lib/featureFlags.ts` — `ENABLE_PAYMENTS = false`. Поставь `true` чтобы вернуть оплату.
+- `src/components/ui/TestModeBanner.tsx` — amber баннер "Тестовый режим"
+
+### Изменённые файлы
+- `src/components/Calculator.tsx` — при `ENABLE_PAYMENTS=false` вызывает `createOrderDirectly()` вместо `setPendingOrder()`
+- `src/dashboard/store/dashboardStore.ts` — добавлен `createOrderDirectly()`: создаёт SharedOrder и Order без шага оплаты. Timeline: "Заказ создан" → "Поиск исполнителя" → "Исполнитель найден" → "Заказ выполнен". Все обновления timeline теперь label-based (не index-based — безопасно для обоих форматов).
+- `src/components/steps/CheckoutStep.tsx` — добавлены disclaimer и TEST MODE notice
+- `src/dashboard/pages/DashboardPage.tsx` — PaymentModal рендерится только при `ENABLE_PAYMENTS=true`, добавлен TestModeBanner
+- `src/dashboard/pages/OrderDetailsPage.tsx` — предупреждение "Оплачивайте через платформу" заменено на TEST MODE info, добавлен price disclaimer, кнопка "Оплатить" скрыта при `ENABLE_PAYMENTS=false`
+
+### Что НЕ трогали (остаётся рабочим)
+- Performer flow (AvailableOrders, принятие заказа, статусы)
+- Admin panel, analytics, chats, verification, auth, onboarding
+- Вся логика PaymentModal (закомментирована флагом, не удалена)
+
+---
+
 ## Следующие задачи
 
 - [ ] Протестировать Telegram Widget auth вживую (после деплоя fix `email_exists`)
 - [ ] Протестировать Link mode (привязка Telegram к email-аккаунту)
 - [ ] Добавить `sourcemap: true` в `vite.config` для читаемых stack trace в `error_logs`
+- [ ] Протестировать MVP flow: калькулятор → заказ → исполнитель принимает → клиент видит исполнителя
