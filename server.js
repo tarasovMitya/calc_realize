@@ -195,7 +195,7 @@ async function handleTelegramAuth(body, authHeader) {
 }
 
 // ── HTTP server ────────────────────────────────────────────────────────────
-http.createServer((req, res) => {
+http.createServer(async (req, res) => {
   const pathname = new URL(req.url, "http://x").pathname;
 
   // CORS preflight
