@@ -15,6 +15,7 @@ import { AddMoreStep } from "./steps/AddMoreStep";
 import { AuthStep } from "./steps/AuthStep";
 import { CheckoutStep } from "./steps/CheckoutStep";
 import { supabase } from "../lib/supabase";
+import { ENABLE_PAYMENTS } from "../lib/featureFlags";
 
 const variants = {
   enter: (dir: number) => ({ x: dir > 0 ? 40 : -40, opacity: 0 }),
@@ -40,7 +41,7 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
       : { title: "Калькулятор услуг", description: "Рассчитайте стоимость бытовых услуг онлайн: электрика, сантехника, уборка, сборка мебели и другое.", canonical: "https://slot-home.ru/calculator" }
   );
   const navigate = useNavigate();
-  const { setPendingOrder } = useDashboardStore();
+  const { setPendingOrder, createOrderDirectly } = useDashboardStore();
   const {
     step,
     goBack,
@@ -127,7 +128,8 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
-      const { error } = await supabase.from("orders").insert({
+      // Audit log — non-blocking, failure doesn't block order creation
+      supabase.from("orders").insert({
         user_id: user?.id ?? null,
         email: contacts.email,
         name: contacts.name,
@@ -142,11 +144,9 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
         scheduled_time: schedule.time,
         address: contacts.address,
         comment: contacts.comment,
-      });
+      }).then(({ error }) => { if (error) console.warn("Order audit log:", error.message); });
 
-      if (error) throw error;
-
-      setPendingOrder({
+      const orderData = {
         serviceName,
         categoryName: primaryService.categoryName,
         duration,
@@ -155,7 +155,13 @@ export function Calculator({ embedded = false }: { embedded?: boolean }) {
         priceTotal: cartTotal,
         priceBreakdown: allBreakdown,
         address: contacts.address,
-      });
+      };
+
+      if (ENABLE_PAYMENTS) {
+        setPendingOrder(orderData);
+      } else {
+        createOrderDirectly(orderData);
+      }
 
       orderCreatedRef.current = true;
       trackEvent("order_created", { value: cartTotal });

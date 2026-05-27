@@ -70,6 +70,7 @@ interface DashboardState {
   setPendingOrder: (order: PendingOrder) => void;
   startPayment: () => void;
   completePayment: () => void;
+  createOrderDirectly: (order: PendingOrder) => void;
   setOrderFlowStatus: (status: OrderFlowStatus) => void;
   onPerformerAssigned: () => void;
   applyPerformerFromSharedOrder: (sharedOrder: SharedOrder) => void;
@@ -162,8 +163,8 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
                   jobsCompleted: sharedOrder.performerJobsCompleted ?? 0,
                   telegram: sharedOrder.performerTelegram ?? undefined,
                 },
-                timeline: o.timeline.map((t, i) =>
-                  i >= 2 ? { ...t, time: assignedTime, completed: true } : t
+                timeline: o.timeline.map((t) =>
+                  t.label === "Заказ выполнен" ? t : { ...t, time: t.completed ? t.time : assignedTime, completed: true }
                 ),
               }
             : o
@@ -231,8 +232,8 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
                   telegram: sharedOrder.performerTelegram ?? undefined,
                 },
                 eta: `${new Date(o.scheduledDate).toLocaleDateString("ru-RU", { day: "numeric", month: "long" })} в ${o.scheduledTime}`,
-                timeline: o.timeline.map((t, i) =>
-                  i >= 2 ? { ...t, time: assignedTime, completed: true } : t
+                timeline: o.timeline.map((t) =>
+                  t.label === "Заказ выполнен" ? t : { ...t, time: t.completed ? t.time : assignedTime, completed: true }
                 ),
               }
             : o
@@ -467,6 +468,63 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     if (sharedOrder) dbCreateSharedOrder(sharedOrder);
   },
 
+  createOrderDirectly: (order) => {
+    const { profile } = get();
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+
+    const sharedId = useSharedOrdersStore.getState().createOrder({
+      status: "searching_performer",
+      scheduledDate: order.scheduledDate,
+      scheduledTime: order.scheduledTime,
+      categoryName: order.categoryName,
+      serviceName: order.serviceName,
+      address: order.address,
+      priceTotal: order.priceTotal,
+      priceBreakdown: order.priceBreakdown,
+      duration: order.duration,
+      clientEmail: profile.email,
+      clientName: profile.name,
+      clientPhone: profile.phone,
+    });
+
+    const newOrder: Order = {
+      id: sharedId,
+      createdAt: now.toISOString(),
+      scheduledDate: order.scheduledDate,
+      scheduledTime: order.scheduledTime,
+      status: "searching",
+      categoryName: order.categoryName,
+      serviceName: order.serviceName,
+      serviceId: "new",
+      address: order.address,
+      priceTotal: order.priceTotal,
+      priceBreakdown: order.priceBreakdown,
+      performer: null,
+      eta: null,
+      duration: order.duration,
+      fieldValues: {},
+      timeline: [
+        { id: "t1", label: "Заказ создан", time: timeStr, completed: true },
+        { id: "t2", label: "Поиск исполнителя", time: "", completed: false },
+        { id: "t3", label: "Исполнитель найден", time: "", completed: false },
+        { id: "t4", label: "Заказ выполнен", time: "", completed: false },
+      ],
+    };
+
+    set((s) => ({
+      orderFlowStatus: "searching",
+      activeSharedOrderId: sharedId,
+      orders: [newOrder, ...s.orders],
+    }));
+
+    const userId = useAuthStore.getState().user?.id;
+    if (userId) dbSaveOrder(userId, newOrder);
+
+    const sharedOrder = useSharedOrdersStore.getState().orders.find((o) => o.id === sharedId);
+    if (sharedOrder) dbCreateSharedOrder(sharedOrder);
+  },
+
   setOrderFlowStatus: (status) => set({ orderFlowStatus: status }),
 
   onPerformerAssigned: () => {
@@ -500,8 +558,8 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
                 telegram: sharedOrder.performerTelegram ?? undefined,
               },
               eta: `${new Date(o.scheduledDate).toLocaleDateString("ru-RU", { day: "numeric", month: "long" })} в ${o.scheduledTime}`,
-              timeline: o.timeline.map((t, i) =>
-                i >= 2 ? { ...t, time: assignedTime, completed: true } : t
+              timeline: o.timeline.map((t) =>
+                t.label === "Заказ выполнен" ? t : { ...t, time: t.completed ? t.time : assignedTime, completed: true }
               ),
             }
           : o
@@ -568,8 +626,8 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
                 telegram: sharedOrder.performerTelegram ?? undefined,
               },
               eta: `${new Date(o.scheduledDate).toLocaleDateString("ru-RU", { day: "numeric", month: "long" })} в ${o.scheduledTime}`,
-              timeline: o.timeline.map((t, i) =>
-                i >= 2 ? { ...t, time: assignedTime, completed: true } : t
+              timeline: o.timeline.map((t) =>
+                t.label === "Заказ выполнен" ? t : { ...t, time: t.completed ? t.time : assignedTime, completed: true }
               ),
             }
           : o
@@ -672,9 +730,18 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   },
 
   confirmOrderCompletion: async (orderId) => {
+    const doneTime = new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
     set((s) => ({
       orders: s.orders.map((o) =>
-        o.id === orderId ? { ...o, status: "completed" as const } : o
+        o.id === orderId
+          ? {
+              ...o,
+              status: "completed" as const,
+              timeline: o.timeline.map((t) =>
+                t.completed ? t : { ...t, time: doneTime, completed: true }
+              ),
+            }
+          : o
       ),
       ...(s.activeSharedOrderId === orderId && {
         orderFlowStatus: "idle" as const,

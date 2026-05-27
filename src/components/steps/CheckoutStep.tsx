@@ -73,6 +73,16 @@ export function CheckoutStep() {
             Заполните email и адрес — без них нельзя назначить исполнителя
           </div>
         )}
+
+        {/* Price disclaimer */}
+        <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+          Стоимость является предварительной оценкой. Финальная стоимость согласовывается с исполнителем.
+        </div>
+
+        {/* TEST MODE notice */}
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+          <span className="font-semibold">Тестовый режим.</span> Оплата производится напрямую исполнителю после выполнения работ.
+        </div>
       </div>
     </div>
   );

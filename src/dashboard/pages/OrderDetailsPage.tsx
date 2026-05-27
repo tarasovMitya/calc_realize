@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ChevronLeft, RotateCcw, MessageCircle, CreditCard, XCircle, AlertTriangle, ShieldAlert } from "lucide-react";
+import { ChevronLeft, RotateCcw, MessageCircle, CreditCard, XCircle, AlertTriangle, ShieldAlert, Wrench } from "lucide-react";
 import { WarningCard } from "../../components/ui/WarningCard";
 import { LiveTrackingMap } from "../components/LiveTrackingMap";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,6 +16,7 @@ import { CompletionConfirmBlock } from "../components/CompletionConfirmBlock";
 import { DisputeModal } from "../components/DisputeModal";
 import { RatingModal } from "../components/RatingModal";
 import { formatPrice } from "../../utils/priceCalculator";
+import { ENABLE_PAYMENTS } from "../../lib/featureFlags";
 
 const CHAT_VISIBLE_STATUSES = new Set([
   "assigned",
@@ -120,6 +121,11 @@ export function OrderDetailsPage() {
             <span className="text-sm font-bold text-gray-900">Итого</span>
             <span className="text-base font-bold text-gray-900">{formatPrice(order.priceTotal)}</span>
           </div>
+          {!ENABLE_PAYMENTS && (
+            <p className="text-xs text-blue-600 mt-2">
+              Стоимость является предварительной оценкой. Финальная стоимость согласовывается с исполнителем.
+            </p>
+          )}
         </Section>
 
         {/* Performer */}
@@ -167,14 +173,26 @@ export function OrderDetailsPage() {
           <Timeline events={order.timeline} />
         </Section>
 
-        {/* Payment safety warning */}
+        {/* Payment info */}
         {(order.status === "assigned" || order.status === "on_the_way" || order.status === "in_progress") && (
-          <WarningCard variant="warning" title="Оплачивайте только через платформу">
-            <span className="flex items-center gap-1.5">
-              <ShieldAlert size={12} className="shrink-0" />
-              Оплата наличными исполнителю лишает вас защиты сервиса и права на компенсацию при споре.
-            </span>
-          </WarningCard>
+          ENABLE_PAYMENTS ? (
+            <WarningCard variant="warning" title="Оплачивайте только через платформу">
+              <span className="flex items-center gap-1.5">
+                <ShieldAlert size={12} className="shrink-0" />
+                Оплата наличными исполнителю лишает вас защиты сервиса и права на компенсацию при споре.
+              </span>
+            </WarningCard>
+          ) : (
+            <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+              <Wrench size={15} className="text-amber-500 mt-0.5 shrink-0" />
+              <div>
+                <p className="text-sm font-semibold text-amber-800">Тестовый режим</p>
+                <p className="text-xs text-amber-700 mt-0.5">
+                  Оплата производится напрямую исполнителю после выполнения работ.
+                </p>
+              </div>
+            </div>
+          )
         )}
 
         {/* Dispute banner */}
@@ -210,7 +228,7 @@ export function OrderDetailsPage() {
 
       {/* Actions */}
       <div className="mt-8 flex flex-col gap-3">
-        {order.status === "pending_payment" && (
+        {order.status === "pending_payment" && ENABLE_PAYMENTS && (
           <button
             onClick={() => { resumePayment(order.id); navigate("/dashboard"); }}
             className="flex items-center justify-center gap-2 py-4 rounded-2xl bg-black text-white font-semibold hover:bg-gray-800 transition-all active:scale-95"

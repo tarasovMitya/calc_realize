@@ -11,6 +11,8 @@ import { SectionHeader } from "../components/ui/SectionHeader";
 import { DashboardSkeleton } from "../components/ui/SkeletonLoader";
 import { EmptyState } from "../components/ui/EmptyState";
 import { PaymentModal } from "../components/PaymentModal";
+import { TestModeBanner } from "../../components/ui/TestModeBanner";
+import { ENABLE_PAYMENTS } from "../../lib/featureFlags";
 
 export function DashboardPage() {
   const navigate = useNavigate();
@@ -58,10 +60,17 @@ export function DashboardPage() {
 
   return (
     <>
-      {/* Blocking payment modal — rendered on top of dashboard */}
-      <PaymentModal />
+      {/* Blocking payment modal — only in payments mode */}
+      {ENABLE_PAYMENTS && <PaymentModal />}
 
     <div className="max-w-2xl mx-auto px-4 pt-8 pb-10">
+      {/* TEST MODE banner */}
+      {!ENABLE_PAYMENTS && (
+        <div className="mb-6">
+          <TestModeBanner />
+        </div>
+      )}
+
       {/* Greeting */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
