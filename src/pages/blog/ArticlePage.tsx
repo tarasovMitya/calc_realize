@@ -58,6 +58,20 @@ function renderBlock(block: SectionBlock, i: number) {
           ))}
         </div>
       );
+    case "image":
+      return (
+        <figure key={i} className="my-2">
+          <img
+            src={block.src}
+            alt={block.alt}
+            className="w-full rounded-2xl object-cover"
+            loading="lazy"
+          />
+          {block.caption && (
+            <figcaption className="text-xs text-gray-400 text-center mt-2">{block.caption}</figcaption>
+          )}
+        </figure>
+      );
   }
 }
 
@@ -171,7 +185,19 @@ export function ArticlePage() {
 
         {/* Title */}
         <h1 className="text-3xl font-black text-gray-900 tracking-tight mb-4 leading-tight">{article.title}</h1>
-        <p className="text-base text-gray-500 mb-8 leading-relaxed border-b border-gray-100 pb-8">{article.excerpt}</p>
+        <p className="text-base text-gray-500 mb-6 leading-relaxed">{article.excerpt}</p>
+
+        {/* Cover image */}
+        {article.coverImage && (
+          <img
+            src={article.coverImage}
+            alt={article.title}
+            className="w-full rounded-3xl object-cover mb-8 border-b border-gray-100"
+            style={{ aspectRatio: "16/9" }}
+            loading="eager"
+          />
+        )}
+        {!article.coverImage && <div className="border-b border-gray-100 mb-8" />}
 
         {/* Content */}
         <div className="flex flex-col gap-4">

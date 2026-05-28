@@ -5,7 +5,8 @@ export type SectionBlock =
   | { type: "ul"; items: string[] }
   | { type: "ol"; items: string[] }
   | { type: "tip"; text: string }
-  | { type: "table"; rows: Array<{ label: string; value: string }> };
+  | { type: "table"; rows: Array<{ label: string; value: string }> }
+  | { type: "image"; src: string; alt: string; caption?: string };
 
 export interface Article {
   slug: string;
@@ -18,6 +19,7 @@ export interface Article {
   metaTitle: string;
   metaDescription: string;
   relatedServiceSlug: string;
+  coverImage?: string;
   sections: SectionBlock[];
 }
 
