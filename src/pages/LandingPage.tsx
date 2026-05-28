@@ -387,57 +387,97 @@ function ValueSection() {
 
 // ─── How it works ─────────────────────────────────────────────────────────────
 
+const HOW_STEPS = [
+  {
+    title: "Опишите задачу",
+    desc: "Мы зададим несколько вопросов, чтобы специалисты смогли оценить работу.",
+    bg: "bg-rose-50",
+    visual: (
+      <div className="bg-white rounded-2xl p-4 shadow-sm">
+        <p className="text-sm font-semibold text-gray-800 mb-3">Где вам удобно встретиться</p>
+        {["Дистанционно", "У специалиста", "У меня"].map((opt, i) => (
+          <div key={opt} className="flex items-center gap-2.5 py-1.5">
+            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${i === 0 ? "border-gray-900 bg-gray-900" : "border-gray-300"}`}>
+              {i === 0 && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+            </div>
+            <span className="text-sm text-gray-700">{opt}</span>
+          </div>
+        ))}
+      </div>
+    ),
+  },
+  {
+    title: "Специалисты напишут сами",
+    desc: "Покажем задачу подходящим профи. Они напишут, если готовы помочь.",
+    bg: "bg-amber-50",
+    visual: (
+      <div className="flex flex-col gap-2">
+        {[
+          { name: "Ирина", rating: "5,0", msg: "Добрый день! Готова помочь", color: "bg-purple-500" },
+          { name: "Василий", rating: "4,8", msg: "Здравствуйте! Живу недалеко", color: "bg-orange-400" },
+          { name: "Наиль", rating: "4,9", msg: "Здравствуйте! Когда нужна услуга", color: "bg-rose-400" },
+        ].map((p) => (
+          <div key={p.name} className="bg-white rounded-xl px-3 py-2.5 flex items-center gap-2.5 shadow-sm">
+            <div className={`w-8 h-8 rounded-full ${p.color} flex items-center justify-center shrink-0`}>
+              <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-gray-900">{p.name} <span className="text-amber-500">☆</span> {p.rating}</p>
+              <p className="text-xs text-gray-400 truncate">{p.msg}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    ),
+  },
+  {
+    title: "Выберите подходящего",
+    desc: "Обо всех деталях договаривайтесь со специалистом и платите ему напрямую.",
+    bg: "bg-violet-50",
+    visual: (
+      <div className="flex flex-col gap-2.5">
+        <div className="bg-white rounded-xl px-3 py-2.5 flex items-center gap-2.5 shadow-sm">
+          <div className="w-8 h-8 rounded-full bg-orange-400 flex items-center justify-center shrink-0">
+            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-gray-900">Василий</p>
+            <p className="text-xs text-gray-400"><span className="text-amber-500">☆</span> 4,8 · 57 отзывов</p>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl px-4 py-2.5 shadow-sm">
+          <p className="text-sm font-medium text-gray-800">Все вместе 2000 рублей</p>
+        </div>
+        <div className="bg-white rounded-xl px-4 py-2.5 shadow-sm">
+          <p className="text-sm font-medium text-gray-800">Когда вам удобно?</p>
+        </div>
+      </div>
+    ),
+  },
+];
+
 function HowItWorksSection() {
   return (
-    <section id="how" className="py-20 bg-gray-50">
+    <section id="how" className="py-20">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={vp}>
-          <motion.div variants={fadeUp} className="text-center mb-14">
+          <motion.div variants={fadeUp} className="mb-12">
             <h2 className="text-3xl sm:text-4xl font-black text-gray-900 tracking-tight">Как это работает</h2>
-            <p className="text-gray-500 mt-3">От выбора услуги до назначения мастера</p>
           </motion.div>
 
-          {/* Desktop grid */}
-          <div className="hidden sm:block space-y-4">
-            <motion.div variants={stagger} className="grid grid-cols-4 gap-4">
-              {STEPS.slice(0, 4).map((s, i) => (
-                <motion.div key={i} variants={fadeUp} className="bg-white rounded-2xl p-5 border border-gray-100 relative">
-                  {i < 3 && <ChevronRight size={14} className="text-gray-200 absolute -right-3 top-7 z-10" />}
-                  <span className="text-4xl font-black text-gray-100 leading-none">{s.n}</span>
-                  <h3 className="font-bold text-gray-900 text-sm mt-2 mb-1">{s.title}</h3>
-                  <p className="text-xs text-gray-400 leading-relaxed">{s.desc}</p>
-                </motion.div>
-              ))}
-            </motion.div>
-            <motion.div variants={stagger} className="grid grid-cols-3 gap-4 ml-[25%]">
-              {STEPS.slice(4).map((s, i) => (
-                <motion.div key={i} variants={fadeUp} className="bg-white rounded-2xl p-5 border border-gray-100 relative">
-                  {i < 2 && <ChevronRight size={14} className="text-gray-200 absolute -right-3 top-7 z-10" />}
-                  <span className="text-4xl font-black text-gray-100 leading-none">{s.n}</span>
-                  <h3 className="font-bold text-gray-900 text-sm mt-2 mb-1">{s.title}</h3>
-                  <p className="text-xs text-gray-400 leading-relaxed">{s.desc}</p>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-
-          {/* Mobile vertical */}
-          <div className="sm:hidden flex flex-col">
-            {STEPS.map((s, i) => (
-              <motion.div key={i} variants={fadeUp} className="flex gap-4">
-                <div className="flex flex-col items-center">
-                  <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center shrink-0 text-white text-xs font-bold">
-                    {i + 1}
-                  </div>
-                  {i < STEPS.length - 1 && <div className="w-px flex-1 bg-gray-200 my-1 min-h-[24px]" />}
+          <motion.div variants={stagger} className="grid sm:grid-cols-3 gap-6">
+            {HOW_STEPS.map((step) => (
+              <motion.div key={step.title} variants={fadeUp} className="flex flex-col gap-5">
+                <div className={`${step.bg} rounded-3xl p-5 flex flex-col justify-center min-h-[220px]`}>
+                  {step.visual}
                 </div>
-                <div className="pb-6 pt-0.5">
-                  <h3 className="font-bold text-gray-900 text-sm mb-0.5">{s.title}</h3>
-                  <p className="text-xs text-gray-400 leading-relaxed">{s.desc}</p>
+                <div>
+                  <h3 className="font-bold text-gray-900 mb-1">{step.title}</h3>
+                  <p className="text-sm text-gray-500 leading-relaxed">{step.desc}</p>
                 </div>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         </motion.div>
       </div>
     </section>
