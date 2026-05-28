@@ -64,8 +64,12 @@ function renderBlock(block: SectionBlock, i: number) {
           <img
             src={block.src}
             alt={block.alt}
+            title={block.alt}
+            width={896}
+            height={504}
             className="w-full rounded-2xl object-cover"
             loading="lazy"
+            decoding="async"
           />
           {block.caption && (
             <figcaption className="text-xs text-gray-400 text-center mt-2">{block.caption}</figcaption>
@@ -86,6 +90,10 @@ function injectArticleSchema(article: ReturnType<typeof getArticle>) {
   const faqBlocks = article.sections.filter((s) => s.type === "h2" && (s as { type: string; text: string }).text.toLowerCase().includes("вопрос"));
   const hasFaq = faqBlocks.length > 0;
 
+  const coverImageUrl = article.coverImage
+    ? `https://slot-home.ru${article.coverImage}`
+    : "https://slot-home.ru/favicon.svg";
+
   const graph: object[] = [
     {
       "@type": "Article",
@@ -93,8 +101,19 @@ function injectArticleSchema(article: ReturnType<typeof getArticle>) {
       description: article.metaDescription,
       datePublished: article.publishedAt,
       dateModified: article.publishedAt,
+      image: {
+        "@type": "ImageObject",
+        url: coverImageUrl,
+        width: 1792,
+        height: 1008,
+      },
       author: { "@type": "Organization", name: "SLOT", url: "https://slot-home.ru" },
-      publisher: { "@type": "Organization", name: "SLOT", url: "https://slot-home.ru" },
+      publisher: {
+        "@type": "Organization",
+        name: "SLOT",
+        url: "https://slot-home.ru",
+        logo: { "@type": "ImageObject", url: "https://slot-home.ru/favicon.svg", width: 48, height: 48 },
+      },
       mainEntityOfPage: { "@type": "WebPage", "@id": `https://slot-home.ru/blog/${article.slug}` },
     },
     {
@@ -189,13 +208,20 @@ export function ArticlePage() {
 
         {/* Cover image */}
         {article.coverImage && (
-          <img
-            src={article.coverImage}
-            alt={article.title}
-            className="w-full rounded-3xl object-cover mb-8 border-b border-gray-100"
-            style={{ aspectRatio: "16/9" }}
-            loading="eager"
-          />
+          <figure className="mb-8">
+            <img
+              src={article.coverImage}
+              alt={`${article.title} — ${article.category} в Москве`}
+              title={`${article.title} | SLOT — мастера на дом`}
+              width={1792}
+              height={1008}
+              className="w-full rounded-3xl object-cover"
+              loading="eager"
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              fetchPriority={"high" as any}
+              decoding="sync"
+            />
+          </figure>
         )}
         {!article.coverImage && <div className="border-b border-gray-100 mb-8" />}
 
