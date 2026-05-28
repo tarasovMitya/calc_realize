@@ -38,9 +38,10 @@ export function BlogPage() {
     canonical: "https://slot-home.ru/blog",
   });
 
-  const filtered = activeCategory
+  const filtered = (activeCategory
     ? ARTICLES.filter((a) => a.category === activeCategory)
-    : ARTICLES;
+    : ARTICLES
+  ).slice().sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
 
   return (
     <div className="min-h-screen bg-white">
