@@ -419,8 +419,11 @@ http.createServer(async (req, res) => {
 
   // Static file serving
   let file = path.join(DIST, pathname);
-  if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) {
+  if (!fs.existsSync(file)) {
     file = path.join(DIST, "index.html");
+  } else if (fs.statSync(file).isDirectory()) {
+    const dirIndex = path.join(file, "index.html");
+    file = fs.existsSync(dirIndex) ? dirIndex : path.join(DIST, "index.html");
   }
   const ext = path.extname(file);
   const noCache = file.endsWith("runtime-env.js") || file.endsWith("index.html");
