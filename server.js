@@ -386,6 +386,13 @@ http.createServer(async (req, res) => {
   }
 
   // RSS feed for Yandex Dzen / search engines
+  // IndexNow key file — must return plain text key, not SPA
+  if (pathname === "/a9f3b2c8d1e4f7a6b5c3d2e9f1a8b7c4.txt") {
+    res.setHeader("Content-Type", "text/plain");
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    return res.end("a9f3b2c8d1e4f7a6b5c3d2e9f1a8b7c4");
+  }
+
   if (pathname === "/rss.xml") {
     const rssFile = path.join(DIST, "rss.xml");
     if (fs.existsSync(rssFile)) {
