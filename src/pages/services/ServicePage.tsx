@@ -128,7 +128,7 @@ export function ServicePage({ city }: ServicePageProps) {
     <div className="min-h-screen bg-white">
       <PublicHeader />
       {/* Hero */}
-      <section className="bg-gray-950 text-white pt-30 pb-16 px-4">
+      <section className="bg-gray-950 text-white pt-28 pb-16 px-4">
         <div className="max-w-4xl mx-auto">
           {/* Breadcrumb */}
           <nav className="flex items-center gap-2 text-xs text-gray-400 mb-8 flex-wrap">
