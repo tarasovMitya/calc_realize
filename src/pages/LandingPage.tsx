@@ -408,7 +408,7 @@ function ValueSection() {
 const HOW_STEPS = [
   {
     title: "Рассчитайте стоимость",
-    desc: "Выберите услугу в калькуляторе и укажите параметры — цена формируется сразу, без звонков и торга.",
+    desc: "Выберите услугу и укажите параметры — стоимость видна сразу. Никаких звонков и переговоров о цене.",
     bg: "bg-rose-50",
     visual: (
       <div className="bg-white rounded-2xl p-4 shadow-sm flex flex-col gap-2.5">
@@ -432,7 +432,7 @@ const HOW_STEPS = [
   },
   {
     title: "Мы назначаем мастера",
-    desc: "Заказ получают только проверенные специалисты из вашего района. Первый свободный мастер берёт заказ.",
+    desc: "Исполнитель назначается автоматически — только проверенные специалисты из вашего района. Выбирать вручную не нужно.",
     bg: "bg-amber-50",
     visual: (
       <div className="flex flex-col gap-2">
@@ -461,7 +461,7 @@ const HOW_STEPS = [
   },
   {
     title: "Мастер приедет к вам",
-    desc: "Специалист приезжает в удобное время и выполняет работу у вас дома. Оплата после выполнения.",
+    desc: "Специалист приезжает домой в удобное время. В приложении есть чат для уточнения деталей. Стоимость фиксирована — изменить можно только через поддержку.",
     bg: "bg-violet-50",
     visual: (
       <div className="flex flex-col gap-2.5">
@@ -470,8 +470,8 @@ const HOW_STEPS = [
           <p className="text-sm font-medium text-gray-800">Выезд на дом к клиенту</p>
         </div>
         <div className="bg-white rounded-xl px-4 py-2.5 shadow-sm flex items-center gap-2.5">
-          <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          <p className="text-sm font-medium text-gray-800">В удобное для вас время</p>
+          <svg className="w-4 h-4 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+          <p className="text-sm font-medium text-gray-800">Чат для уточнения деталей</p>
         </div>
         <div className="bg-white rounded-xl px-4 py-2.5 shadow-sm flex items-center gap-2.5">
           <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
