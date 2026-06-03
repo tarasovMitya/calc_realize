@@ -65,6 +65,16 @@ import { PrivacyPage } from "./pages/legal/PrivacyPage";
 import { ContactsPage } from "./pages/legal/ContactsPage";
 import { RulesPage } from "./pages/legal/RulesPage";
 import { FinancialModelPage } from "./pages/internal/FinancialModelPage";
+import { AffiliateGuard } from "./affiliate/components/AffiliateGuard";
+import { AffiliateLayout } from "./affiliate/components/layout/AffiliateLayout";
+import { AffiliateOverviewPage } from "./affiliate/pages/OverviewPage";
+import { AffiliatePerformersPage } from "./affiliate/pages/PerformersPage";
+import { AffiliateOrdersPage } from "./affiliate/pages/OrdersPage";
+import { AffiliateDisputesPage } from "./affiliate/pages/DisputesPage";
+import { AffiliateChatsPage } from "./affiliate/pages/ChatsPage";
+import { AffiliateFinancePage } from "./affiliate/pages/FinancePage";
+import { AffiliateTasksPage } from "./affiliate/pages/TasksPage";
+import { AffiliateReferralPage } from "./affiliate/pages/ReferralPage";
 import { TMAApp } from "./pages/tma/TMAApp";
 import { PricePage } from "./pages/price/PricePage";
 
@@ -195,6 +205,20 @@ function App() {
             <Route path="settings" element={<AdminSettingsPage />} />
             <Route path="events" element={<AdminEventLogsPage />} />
             <Route path="financial-model" element={<FinancialModelPage />} />
+          </Route>
+        </Route>
+
+        {/* Affiliate manager cabinet */}
+        <Route element={<AffiliateGuard />}>
+          <Route path="/affiliate" element={<AffiliateLayout />}>
+            <Route index element={<AffiliateOverviewPage />} />
+            <Route path="performers" element={<AffiliatePerformersPage />} />
+            <Route path="orders" element={<AffiliateOrdersPage />} />
+            <Route path="disputes" element={<AffiliateDisputesPage />} />
+            <Route path="chats" element={<AffiliateChatsPage />} />
+            <Route path="finance" element={<AffiliateFinancePage />} />
+            <Route path="tasks" element={<AffiliateTasksPage />} />
+            <Route path="referral" element={<AffiliateReferralPage />} />
           </Route>
         </Route>
 

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { supabase } from "../../lib/supabase";
@@ -17,7 +17,14 @@ const slide = {
 
 export function PerformerAuthPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, isAuthenticated, isLoading } = useAuthStore();
+
+  // Save referral code from ?ref= query param to localStorage
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    if (ref) localStorage.setItem("affiliate_ref_code", ref);
+  }, []);
 
   const [subStep, setSubStep] = useState<SubStep>("email");
   const [email, setEmail] = useState("");

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { trackEvent } from "../../hooks/useAnalytics";
+import { affiliateLinkPerformerByCode } from "../../affiliate/lib/affiliateDb";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useOnboardingStore } from "./store/onboardingStore";
@@ -108,6 +109,15 @@ export function PerformerOnboarding() {
       };
       updateProfile(profileData);
       await supabase.auth.updateUser({ data: { performer_role: true, performer_onboarded: true } });
+      // Link to affiliate manager if registered via referral link
+      const refCode = localStorage.getItem("affiliate_ref_code");
+      if (refCode) {
+        const { data: { user: freshUser } } = await supabase.auth.getUser();
+        if (freshUser) {
+          await affiliateLinkPerformerByCode(freshUser.id, refCode).catch(() => {});
+          localStorage.removeItem("affiliate_ref_code");
+        }
+      }
       trackEvent("performer_registration_completed");
       complete();
       reset();
