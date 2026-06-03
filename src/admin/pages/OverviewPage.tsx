@@ -56,7 +56,7 @@ export function AdminOverviewPage() {
       {isLoadingStats ? (
         <div className="grid grid-cols-4 gap-4 mb-6">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-xl border border-white/[0.06] p-5 animate-pulse style={{background:"#0f1120"}} h-24" />
+            <div key={i} className="rounded-xl border border-white/[0.06] p-5 animate-pulse h-24" style={{background:"#0f1120"}} />
           ))}
         </div>
       ) : (
