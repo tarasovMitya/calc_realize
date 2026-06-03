@@ -43,11 +43,11 @@ export function AdminDisputesPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 text-gray-100">
       <div className="mb-6 flex items-center gap-3">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Споры</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{disputes.length} открытых споров</p>
+          <h1 className="text-xl font-bold text-white">Споры</h1>
+          <p className="text-sm text-[#6b7194] mt-0.5">{disputes.length} открытых споров</p>
         </div>
         {disputes.length > 0 && (
           <span className="flex items-center gap-1 bg-orange-100 text-orange-700 px-2.5 py-0.5 rounded-full text-xs font-semibold">
@@ -61,18 +61,18 @@ export function AdminDisputesPage() {
         {/* Table */}
         <div className="flex-1 bg-white rounded-xl border border-gray-200 overflow-hidden">
           {isLoadingDisputes ? (
-            <div className="p-8 text-center text-sm text-gray-400">Загрузка...</div>
+            <div className="p-8 text-center text-sm text-[#6b7194]">Загрузка...</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100">
-                    <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">ID заказа</th>
-                    <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Клиент</th>
-                    <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Исполнитель</th>
-                    <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Услуга</th>
-                    <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Сумма</th>
-                    <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Дата</th>
+                    <th className="text-left px-5 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">ID заказа</th>
+                    <th className="text-left px-5 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Клиент</th>
+                    <th className="text-left px-5 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Исполнитель</th>
+                    <th className="text-left px-5 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Услуга</th>
+                    <th className="text-left px-5 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Сумма</th>
+                    <th className="text-left px-5 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Дата</th>
                     <th className="px-5 py-3" />
                   </tr>
                 </thead>
@@ -83,12 +83,12 @@ export function AdminDisputesPage() {
                       onClick={() => setSelected(d.id === selected ? null : d.id)}
                       className={`border-b border-gray-50 hover:bg-orange-50/50 transition-colors cursor-pointer ${selected === d.id ? "bg-orange-50" : ""}`}
                     >
-                      <td className="px-5 py-3 font-mono text-xs text-gray-400">{d.orderId.slice(0, 8)}…</td>
-                      <td className="px-5 py-3 font-medium text-gray-900">{d.clientName}</td>
-                      <td className="px-5 py-3 text-gray-600">{d.performerName}</td>
-                      <td className="px-5 py-3 text-gray-600 max-w-[160px] truncate">{d.serviceName}</td>
-                      <td className="px-5 py-3 font-semibold text-gray-900">{formatPrice(d.priceTotal)}</td>
-                      <td className="px-5 py-3 text-gray-400 text-xs">{new Date(d.createdAt).toLocaleDateString("ru-RU")}</td>
+                      <td className="px-5 py-3 font-mono text-xs text-[#6b7194]">{d.orderId.slice(0, 8)}…</td>
+                      <td className="px-5 py-3 font-medium text-white">{d.clientName}</td>
+                      <td className="px-5 py-3 text-[#8b90a8]">{d.performerName}</td>
+                      <td className="px-5 py-3 text-[#8b90a8] max-w-[160px] truncate">{d.serviceName}</td>
+                      <td className="px-5 py-3 font-semibold text-white">{formatPrice(d.priceTotal)}</td>
+                      <td className="px-5 py-3 text-[#6b7194] text-xs">{new Date(d.createdAt).toLocaleDateString("ru-RU")}</td>
                       <td className="px-5 py-3">
                         <div className="flex gap-1.5">
                           <button
@@ -111,7 +111,7 @@ export function AdminDisputesPage() {
                   ))}
                   {disputes.length === 0 && (
                     <tr>
-                      <td colSpan={7} className="px-5 py-12 text-center text-gray-400">
+                      <td colSpan={7} className="px-5 py-12 text-center text-[#6b7194]">
                         <AlertTriangle size={24} className="mx-auto mb-2 text-gray-300" />
                         <p className="text-sm">Открытых споров нет</p>
                       </td>
@@ -129,45 +129,45 @@ export function AdminDisputesPage() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <AlertTriangle size={14} className="text-orange-500" />
-                <p className="text-sm font-semibold text-gray-900">Детали спора</p>
+                <p className="text-sm font-semibold text-white">Детали спора</p>
               </div>
-              <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-600 text-lg leading-none">×</button>
+              <button onClick={() => setSelected(null)} className="text-[#6b7194] hover:text-[#8b90a8] text-lg leading-none">×</button>
             </div>
 
             <div className="space-y-2 text-sm">
               <div>
-                <p className="text-xs text-gray-400">ID заказа</p>
-                <p className="font-mono text-xs text-gray-700">{selectedDispute.orderId}</p>
+                <p className="text-xs text-[#6b7194]">ID заказа</p>
+                <p className="font-mono text-xs text-[#a0a5c0]">{selectedDispute.orderId}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-400">Клиент</p>
+                <p className="text-xs text-[#6b7194]">Клиент</p>
                 <p className="text-gray-800">{selectedDispute.clientName}</p>
                 {selectedDispute.clientEmail && (
-                  <p className="text-xs text-gray-400 mt-0.5">{selectedDispute.clientEmail}</p>
+                  <p className="text-xs text-[#6b7194] mt-0.5">{selectedDispute.clientEmail}</p>
                 )}
               </div>
               <div>
-                <p className="text-xs text-gray-400">Исполнитель</p>
+                <p className="text-xs text-[#6b7194]">Исполнитель</p>
                 <p className="text-gray-800">{selectedDispute.performerName}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-400">Услуга</p>
+                <p className="text-xs text-[#6b7194]">Услуга</p>
                 <p className="text-gray-800">{selectedDispute.serviceName}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-400">Сумма</p>
-                <p className="font-semibold text-gray-900">{formatPrice(selectedDispute.priceTotal)}</p>
+                <p className="text-xs text-[#6b7194]">Сумма</p>
+                <p className="font-semibold text-white">{formatPrice(selectedDispute.priceTotal)}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-400">Дата открытия</p>
-                <p className="text-gray-700">{new Date(selectedDispute.createdAt).toLocaleString("ru-RU")}</p>
+                <p className="text-xs text-[#6b7194]">Дата открытия</p>
+                <p className="text-[#a0a5c0]">{new Date(selectedDispute.createdAt).toLocaleString("ru-RU")}</p>
               </div>
             </div>
 
             {selectedDispute.disputeComment && (
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Причина спора</p>
-                <p className="text-sm text-gray-700 bg-orange-50 border border-orange-100 rounded-lg p-3">
+                <p className="text-xs font-semibold text-[#6b7194] uppercase tracking-wider mb-1.5">Причина спора</p>
+                <p className="text-sm text-[#a0a5c0] bg-orange-50 border border-orange-100 rounded-lg p-3">
                   {selectedDispute.disputeComment}
                 </p>
               </div>

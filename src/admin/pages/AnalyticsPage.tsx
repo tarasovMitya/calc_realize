@@ -36,17 +36,17 @@ export function AdminAnalyticsPage() {
   useEffect(() => { loadAll(); }, []);
 
   return (
-    <div className="p-6">
+    <div className="p-6 text-gray-100">
       {/* Header */}
       <div className="mb-6 flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Аналитика</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Здоровье продукта, воронка, выручка, retention</p>
+          <h1 className="text-xl font-bold text-white">Аналитика</h1>
+          <p className="text-sm text-[#6b7194] mt-0.5">Здоровье продукта, воронка, выручка, retention</p>
         </div>
         <button
           onClick={() => loadAll()}
           disabled={isLoading}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#8b90a8] bg-white border border-gray-200 rounded-lg hover:bg-white/[0.03] transition-colors disabled:opacity-50"
         >
           <RefreshCw size={12} className={isLoading ? "animate-spin" : ""} />
           Обновить
@@ -62,8 +62,8 @@ export function AdminAnalyticsPage() {
               onClick={() => setTimeRange(r.value)}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
                 timeRange === r.value
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "bg-white text-white shadow-sm"
+                  : "text-[#6b7194] hover:text-[#a0a5c0]"
               }`}
             >
               {r.label}
@@ -78,8 +78,8 @@ export function AdminAnalyticsPage() {
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
                 tab === t.id
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "bg-white text-white shadow-sm"
+                  : "text-[#6b7194] hover:text-[#a0a5c0]"
               }`}
             >
               {t.icon}{t.label}

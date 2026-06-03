@@ -36,8 +36,8 @@ export function AffiliateReferralPage() {
   return (
     <div className="p-6 max-w-2xl">
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-gray-900">Реферальная ссылка</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Привлекайте исполнителей и зарабатывайте</p>
+        <h1 className="text-xl font-bold text-white">Реферальная ссылка</h1>
+        <p className="text-sm text-[#6b7194] mt-0.5">Привлекайте исполнителей и зарабатывайте</p>
       </div>
 
       {loading ? (
@@ -46,31 +46,31 @@ export function AffiliateReferralPage() {
         <>
           {/* Stats */}
           <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="bg-white rounded-2xl p-5 border border-gray-100 flex items-center gap-4">
+            <div className="bg-[#0f1120] rounded-xl p-5 border border-white/[0.06] flex items-center gap-4">
               <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center text-[#006AFF]">
                 <Users size={20} />
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-medium">Всего привлечено</p>
-                <p className="text-xl font-bold text-gray-900">{stats?.total ?? 0}</p>
+                <p className="text-xs text-[#6b7194] font-medium">Всего привлечено</p>
+                <p className="text-xl font-bold text-white">{stats?.total ?? 0}</p>
               </div>
             </div>
-            <div className="bg-white rounded-2xl p-5 border border-gray-100 flex items-center gap-4">
+            <div className="bg-[#0f1120] rounded-xl p-5 border border-white/[0.06] flex items-center gap-4">
               <div className="w-11 h-11 rounded-xl bg-green-50 flex items-center justify-center text-green-600">
                 <UserCheck size={20} />
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-medium">За этот месяц</p>
-                <p className="text-xl font-bold text-gray-900">{stats?.thisMonth ?? 0}</p>
+                <p className="text-xs text-[#6b7194] font-medium">За этот месяц</p>
+                <p className="text-xl font-bold text-white">{stats?.thisMonth ?? 0}</p>
               </div>
             </div>
           </div>
 
           {/* Link block */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-5 mb-4">
-            <p className="text-sm font-semibold text-gray-700 mb-3">Ваша реферальная ссылка</p>
+          <div className="bg-[#0f1120] rounded-xl border border-white/[0.06] p-5 mb-4">
+            <p className="text-sm font-semibold text-[#a0a5c0] mb-3">Ваша реферальная ссылка</p>
             <div className="flex items-center gap-2">
-              <div className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 font-mono truncate">
+              <div className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-[#a0a5c0] font-mono truncate">
                 {link ?? "—"}
               </div>
               <button
@@ -83,7 +83,7 @@ export function AffiliateReferralPage() {
               </button>
             </div>
             {code && (
-              <p className="text-xs text-gray-400 mt-2">Код: <span className="font-mono font-semibold text-gray-600">{code}</span></p>
+              <p className="text-xs text-[#6b7194] mt-2">Код: <span className="font-mono font-semibold text-[#8b90a8]">{code}</span></p>
             )}
           </div>
 

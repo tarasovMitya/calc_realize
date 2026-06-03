@@ -53,8 +53,8 @@ export function AdminSettingsPage() {
   return (
     <div className="p-6 max-w-2xl">
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-gray-900">Настройки</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Конфигурация платформы</p>
+        <h1 className="text-xl font-bold text-white">Настройки</h1>
+        <p className="text-sm text-[#6b7194] mt-0.5">Конфигурация платформы</p>
       </div>
 
       <Section title="Ваши права">
@@ -62,7 +62,7 @@ export function AdminSettingsPage() {
           <span className="px-3 py-1.5 bg-[#003B8F] text-white rounded-lg text-sm font-medium">
             {role ? ROLE_LABELS[role] : "—"}
           </span>
-          <p className="text-sm text-gray-500">Роли назначаются через базу данных администратором</p>
+          <p className="text-sm text-[#6b7194]">Роли назначаются через базу данных администратором</p>
         </div>
       </Section>
 
@@ -74,7 +74,7 @@ export function AdminSettingsPage() {
       </Section>
 
       <Section title="Стоимость выезда исполнителя">
-        <p className="text-xs text-gray-400 mb-3">Влияет на итоговую стоимость в калькуляторе</p>
+        <p className="text-xs text-[#6b7194] mb-3">Влияет на итоговую стоимость в калькуляторе</p>
         <div className="space-y-3">
           <Field label="Базовая стоимость выезда (₽)" value={form.travel_base_cost} onChange={(v) => set("travel_base_cost", v)} type="number" min={0} />
           <Field label="Цена за км сверх базового радиуса (₽)" value={form.travel_price_per_km} onChange={(v) => set("travel_price_per_km", v)} type="number" min={0} />
@@ -117,7 +117,7 @@ export function AdminSettingsPage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
-      <p className="text-sm font-semibold text-gray-900 mb-4">{title}</p>
+      <p className="text-sm font-semibold text-white mb-4">{title}</p>
       {children}
     </div>
   );
@@ -133,7 +133,7 @@ function Field({ label, value, onChange, type, min, max }: {
 }) {
   return (
     <div className="flex items-center gap-4">
-      <label className="text-sm text-gray-600 w-52 shrink-0">{label}</label>
+      <label className="text-sm text-[#8b90a8] w-52 shrink-0">{label}</label>
       <input
         type={type}
         value={value}

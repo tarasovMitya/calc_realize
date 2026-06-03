@@ -66,13 +66,13 @@ export function AdminChatsPage() {
         {/* Header */}
         <div className="px-4 pt-4 pb-3 border-b border-gray-100">
           <div className="flex items-center justify-between mb-3">
-            <h1 className="text-base font-bold text-gray-900">Чаты</h1>
-            <span className="text-xs text-gray-400">{filtered.length} / {chats.length}</span>
+            <h1 className="text-base font-bold text-white">Чаты</h1>
+            <span className="text-xs text-[#6b7194]">{filtered.length} / {chats.length}</span>
           </div>
 
           {/* Search */}
           <div className="relative">
-            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#6b7194] pointer-events-none" />
             <input
               type="text"
               value={search}
@@ -83,7 +83,7 @@ export function AdminChatsPage() {
             {search && (
               <button
                 onClick={() => setSearch("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-[#6b7194] hover:text-[#8b90a8]"
               >
                 <X size={12} />
               </button>
@@ -99,7 +99,7 @@ export function AdminChatsPage() {
                 className={`px-2 py-1 rounded-md text-xs font-medium transition-colors ${
                   filter === f.key
                     ? "bg-[#003B8F] text-white"
-                    : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                    : "bg-gray-100 text-[#6b7194] hover:bg-gray-200"
                 }`}
               >
                 {f.label}
@@ -117,7 +117,7 @@ export function AdminChatsPage() {
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center gap-2 py-12 text-center px-4">
               <MessageSquare size={28} className="text-gray-200" />
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-[#6b7194]">
                 {chats.length === 0 ? "Чатов пока нет" : "Ничего не найдено"}
               </p>
             </div>
@@ -133,16 +133,16 @@ export function AdminChatsPage() {
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2 mb-1">
-                    <p className="text-sm font-semibold text-gray-900 truncate">
+                    <p className="text-sm font-semibold text-white truncate">
                       {chat.serviceName ?? "Заказ"}
                     </p>
-                    <span className="text-xs text-gray-400 shrink-0">
+                    <span className="text-xs text-[#6b7194] shrink-0">
                       {timeAgo(chat.createdAt)}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-400">{TYPE_LABELS[chat.type] ?? chat.type}</p>
+                  <p className="text-xs text-[#6b7194]">{TYPE_LABELS[chat.type] ?? chat.type}</p>
                   {chat.orderStatus && (
-                    <span className="inline-block mt-1.5 text-xs bg-gray-100 text-gray-500 rounded-full px-2 py-0.5">
+                    <span className="inline-block mt-1.5 text-xs bg-gray-100 text-[#6b7194] rounded-full px-2 py-0.5">
                       {chat.orderStatus}
                     </span>
                   )}
@@ -158,10 +158,10 @@ export function AdminChatsPage() {
         {activeChat && user ? (
           <>
             <div className="px-5 py-3.5 border-b border-gray-100 shrink-0">
-              <p className="text-sm font-semibold text-gray-900">
+              <p className="text-sm font-semibold text-white">
                 {(activeChat as ChatWithMeta).serviceName ?? "Чат"}
               </p>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-[#6b7194]">
                 {TYPE_LABELS[activeChat.type] ?? activeChat.type}
               </p>
             </div>
@@ -181,7 +181,7 @@ export function AdminChatsPage() {
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center gap-3">
             <MessageSquare size={36} className="text-gray-200" />
-            <p className="text-sm text-gray-400">Выберите чат слева</p>
+            <p className="text-sm text-[#6b7194]">Выберите чат слева</p>
           </div>
         )}
       </div>

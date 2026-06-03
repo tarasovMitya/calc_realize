@@ -28,7 +28,7 @@ const SEVERITY_COLORS: Record<string, string> = {
   critical: "bg-red-100 text-red-700",
   high: "bg-orange-100 text-orange-700",
   medium: "bg-yellow-100 text-yellow-700",
-  low: "bg-gray-100 text-gray-600",
+  low: "bg-gray-100 text-[#8b90a8]",
 };
 
 const ERROR_EVENT_NAMES = ["react_error", "api_error", "auth_error", "db_error", "network_error", "realtime_error"];
@@ -143,10 +143,10 @@ export function AdminEventLogsPage() {
   const maxFunnel = Math.max(...FUNNEL_EVENTS.map((f) => funnelCounts[f.event] ?? 0), 1);
 
   return (
-    <div className="p-6">
+    <div className="p-6 text-gray-100">
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-gray-900">Логи событий</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Действия пользователей, ошибки, воронка</p>
+        <h1 className="text-xl font-bold text-white">Логи событий</h1>
+        <p className="text-sm text-[#6b7194] mt-0.5">Действия пользователей, ошибки, воронка</p>
       </div>
 
       {/* Tabs */}
@@ -161,7 +161,7 @@ export function AdminEventLogsPage() {
             key={t.id}
             onClick={() => setTab(t.id)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              tab === t.id ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+              tab === t.id ? "bg-white text-white shadow-sm" : "text-[#6b7194] hover:text-[#a0a5c0]"
             }`}
           >
             {t.icon}{t.label}
@@ -173,7 +173,7 @@ export function AdminEventLogsPage() {
       {tab !== "funnel" && tab !== "audit" && (
         <div className="flex gap-3 mb-4">
           <div className="relative flex-1 max-w-sm">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6b7194]" />
             <input
               type="text"
               placeholder="Поиск..."
@@ -197,24 +197,24 @@ export function AdminEventLogsPage() {
       )}
 
       {loading ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-sm text-gray-400">Загрузка...</div>
+        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-sm text-[#6b7194]">Загрузка...</div>
       ) : (
         <>
           {/* Events tab */}
           {tab === "events" && (
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
-                <p className="text-sm font-semibold text-gray-900">Последние события</p>
-                <span className="text-xs text-gray-400">{filteredEvents.length} записей</span>
+                <p className="text-sm font-semibold text-white">Последние события</p>
+                <span className="text-xs text-[#6b7194]">{filteredEvents.length} записей</span>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-gray-100">
-                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Событие</th>
-                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Страница</th>
-                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">User ID</th>
-                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Время</th>
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Событие</th>
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Страница</th>
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">User ID</th>
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Время</th>
                       <th className="px-4 py-2.5" />
                     </tr>
                   </thead>
@@ -227,24 +227,24 @@ export function AdminEventLogsPage() {
                           className={`border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors ${ERROR_EVENT_NAMES.includes(e.event_name) ? "bg-red-50/40" : ""}`}
                         >
                           <td className="px-4 py-2.5">
-                            <span className={`text-xs font-mono font-semibold ${ERROR_EVENT_NAMES.includes(e.event_name) ? "text-red-600" : "text-gray-700"}`}>
+                            <span className={`text-xs font-mono font-semibold ${ERROR_EVENT_NAMES.includes(e.event_name) ? "text-red-600" : "text-[#a0a5c0]"}`}>
                               {e.event_name}
                             </span>
                             {e.error_message && (
                               <p className="text-xs text-red-500 mt-0.5 truncate max-w-[200px]">{e.error_message}</p>
                             )}
                           </td>
-                          <td className="px-4 py-2.5 text-xs text-gray-500">{e.page ?? "—"}</td>
-                          <td className="px-4 py-2.5 font-mono text-xs text-gray-400">{e.user_id ? e.user_id.slice(0, 8) + "…" : "anon"}</td>
-                          <td className="px-4 py-2.5 text-xs text-gray-400 whitespace-nowrap">
+                          <td className="px-4 py-2.5 text-xs text-[#6b7194]">{e.page ?? "—"}</td>
+                          <td className="px-4 py-2.5 font-mono text-xs text-[#6b7194]">{e.user_id ? e.user_id.slice(0, 8) + "…" : "anon"}</td>
+                          <td className="px-4 py-2.5 text-xs text-[#6b7194] whitespace-nowrap">
                             {new Date(e.created_at).toLocaleString("ru-RU")}
                           </td>
-                          <td className="px-4 py-2.5 text-xs text-gray-400">{e.metadata ? "▼" : ""}</td>
+                          <td className="px-4 py-2.5 text-xs text-[#6b7194]">{e.metadata ? "▼" : ""}</td>
                         </tr>
                         {expandedId === e.id && e.metadata && (
-                          <tr key={e.id + "_meta"} className="bg-gray-50 border-b border-gray-100">
+                          <tr key={e.id + "_meta"} className="bg-[#0c0e1a] border-b border-white/[0.05]">
                             <td colSpan={5} className="px-4 py-2.5">
-                              <pre className="text-xs text-gray-600 whitespace-pre-wrap font-mono bg-gray-100 rounded p-2">
+                              <pre className="text-xs text-[#8b90a8] whitespace-pre-wrap font-mono bg-gray-100 rounded p-2">
                                 {JSON.stringify(e.metadata, null, 2)}
                               </pre>
                             </td>
@@ -253,7 +253,7 @@ export function AdminEventLogsPage() {
                       </>
                     ))}
                     {filteredEvents.length === 0 && (
-                      <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400 text-sm">Нет событий</td></tr>
+                      <tr><td colSpan={5} className="px-4 py-8 text-center text-[#6b7194] text-sm">Нет событий</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -265,18 +265,18 @@ export function AdminEventLogsPage() {
           {tab === "errors" && (
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
-                <p className="text-sm font-semibold text-gray-900">Журнал ошибок</p>
-                <span className="text-xs text-gray-400">{filteredErrors.length} записей</span>
+                <p className="text-sm font-semibold text-white">Журнал ошибок</p>
+                <span className="text-xs text-[#6b7194]">{filteredErrors.length} записей</span>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-gray-100">
-                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Ошибка</th>
-                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Компонент</th>
-                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Страница</th>
-                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Severity</th>
-                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Время</th>
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Ошибка</th>
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Компонент</th>
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Страница</th>
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Severity</th>
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Время</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -290,21 +290,21 @@ export function AdminEventLogsPage() {
                           <td className="px-4 py-2.5 max-w-[260px]">
                             <p className="text-xs font-semibold text-red-700 truncate">{e.error_message}</p>
                           </td>
-                          <td className="px-4 py-2.5 text-xs text-gray-500">{e.component ?? "—"}</td>
-                          <td className="px-4 py-2.5 text-xs text-gray-500">{e.page ?? "—"}</td>
+                          <td className="px-4 py-2.5 text-xs text-[#6b7194]">{e.component ?? "—"}</td>
+                          <td className="px-4 py-2.5 text-xs text-[#6b7194]">{e.page ?? "—"}</td>
                           <td className="px-4 py-2.5">
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${SEVERITY_COLORS[e.severity] ?? "bg-gray-100 text-gray-600"}`}>
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${SEVERITY_COLORS[e.severity] ?? "bg-gray-100 text-[#8b90a8]"}`}>
                               {e.severity}
                             </span>
                           </td>
-                          <td className="px-4 py-2.5 text-xs text-gray-400 whitespace-nowrap">
+                          <td className="px-4 py-2.5 text-xs text-[#6b7194] whitespace-nowrap">
                             {new Date(e.created_at).toLocaleString("ru-RU")}
                           </td>
                         </tr>
                         {expandedId === e.id && e.stack_trace && (
                           <tr key={e.id + "_stack"} className="bg-red-50/20 border-b border-gray-100">
                             <td colSpan={5} className="px-4 py-2.5">
-                              <pre className="text-xs text-gray-600 whitespace-pre-wrap font-mono bg-gray-100 rounded p-2 max-h-40 overflow-auto">
+                              <pre className="text-xs text-[#8b90a8] whitespace-pre-wrap font-mono bg-gray-100 rounded p-2 max-h-40 overflow-auto">
                                 {e.stack_trace}
                               </pre>
                             </td>
@@ -313,7 +313,7 @@ export function AdminEventLogsPage() {
                       </>
                     ))}
                     {filteredErrors.length === 0 && (
-                      <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400 text-sm">Ошибок нет</td></tr>
+                      <tr><td colSpan={5} className="px-4 py-8 text-center text-[#6b7194] text-sm">Ошибок нет</td></tr>
                     )}
                   </tbody>
                 </table>
@@ -324,7 +324,7 @@ export function AdminEventLogsPage() {
           {/* Funnel tab */}
           {tab === "funnel" && (
             <div className="bg-white rounded-xl border border-gray-200 p-5">
-              <p className="text-sm font-semibold text-gray-900 mb-5">Воронка конверсии</p>
+              <p className="text-sm font-semibold text-white mb-5">Воронка конверсии</p>
               <div className="space-y-3">
                 {FUNNEL_EVENTS.map((f, i) => {
                   const count = funnelCounts[f.event] ?? 0;
@@ -335,15 +335,15 @@ export function AdminEventLogsPage() {
                     <div key={f.event}>
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-gray-400 w-4">{i + 1}</span>
-                          <span className="text-sm text-gray-700">{f.label}</span>
-                          <span className="text-xs font-mono text-gray-400">{f.event}</span>
+                          <span className="text-xs text-[#6b7194] w-4">{i + 1}</span>
+                          <span className="text-sm text-[#a0a5c0]">{f.label}</span>
+                          <span className="text-xs font-mono text-[#6b7194]">{f.event}</span>
                         </div>
                         <div className="flex items-center gap-3">
                           {i > 0 && dropPct > 0 && (
                             <span className="text-xs text-red-500">−{dropPct}%</span>
                           )}
-                          <span className="text-sm font-bold text-gray-900 w-10 text-right">{count}</span>
+                          <span className="text-sm font-bold text-white w-10 text-right">{count}</span>
                         </div>
                       </div>
                       <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -363,18 +363,18 @@ export function AdminEventLogsPage() {
           {tab === "audit" && (
             <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
-                <p className="text-sm font-semibold text-gray-900">Журнал безопасности</p>
-                <span className="text-xs text-gray-400">{auditLogs.length} записей</span>
+                <p className="text-sm font-semibold text-white">Журнал безопасности</p>
+                <span className="text-xs text-[#6b7194]">{auditLogs.length} записей</span>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-gray-100">
-                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Действие</th>
-                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Ресурс</th>
-                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
-                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
-                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Время</th>
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Действие</th>
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Ресурс</th>
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">ID</th>
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">User</th>
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Время</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -386,23 +386,23 @@ export function AdminEventLogsPage() {
                           className="border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors"
                         >
                           <td className="px-4 py-2.5">
-                            <span className="text-xs font-mono font-semibold text-gray-700">{log.action}</span>
+                            <span className="text-xs font-mono font-semibold text-[#a0a5c0]">{log.action}</span>
                           </td>
-                          <td className="px-4 py-2.5 text-xs text-gray-500">{log.resource_type ?? "—"}</td>
-                          <td className="px-4 py-2.5 font-mono text-xs text-gray-400">
+                          <td className="px-4 py-2.5 text-xs text-[#6b7194]">{log.resource_type ?? "—"}</td>
+                          <td className="px-4 py-2.5 font-mono text-xs text-[#6b7194]">
                             {log.resource_id ? log.resource_id.slice(0, 8) + "…" : "—"}
                           </td>
-                          <td className="px-4 py-2.5 font-mono text-xs text-gray-400">
+                          <td className="px-4 py-2.5 font-mono text-xs text-[#6b7194]">
                             {log.user_id ? log.user_id.slice(0, 8) + "…" : "system"}
                           </td>
-                          <td className="px-4 py-2.5 text-xs text-gray-400 whitespace-nowrap">
+                          <td className="px-4 py-2.5 text-xs text-[#6b7194] whitespace-nowrap">
                             {new Date(log.created_at).toLocaleString("ru-RU")}
                           </td>
                         </tr>
                         {expandedId === String(log.id) && log.details && Object.keys(log.details).length > 0 && (
-                          <tr key={log.id + "_detail"} className="bg-gray-50 border-b border-gray-100">
+                          <tr key={log.id + "_detail"} className="bg-[#0c0e1a] border-b border-white/[0.05]">
                             <td colSpan={5} className="px-4 py-2.5">
-                              <pre className="text-xs text-gray-600 whitespace-pre-wrap font-mono bg-gray-100 rounded p-2">
+                              <pre className="text-xs text-[#8b90a8] whitespace-pre-wrap font-mono bg-gray-100 rounded p-2">
                                 {JSON.stringify(log.details, null, 2)}
                               </pre>
                             </td>
@@ -411,7 +411,7 @@ export function AdminEventLogsPage() {
                       </>
                     ))}
                     {auditLogs.length === 0 && (
-                      <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-400 text-sm">Нет записей</td></tr>
+                      <tr><td colSpan={5} className="px-4 py-8 text-center text-[#6b7194] text-sm">Нет записей</td></tr>
                     )}
                   </tbody>
                 </table>

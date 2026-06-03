@@ -66,10 +66,10 @@ export function AdminFinancePage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 text-gray-100">
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-gray-900">Финансы</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Управление выплатами и балансами</p>
+        <h1 className="text-xl font-bold text-white">Финансы</h1>
+        <p className="text-sm text-[#6b7194] mt-0.5">Управление выплатами и балансами</p>
       </div>
 
       {/* KPI row */}
@@ -107,7 +107,7 @@ export function AdminFinancePage() {
       {/* Pending payout requests */}
       <div className="bg-white rounded-xl border border-gray-200 mb-4">
         <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-          <p className="text-sm font-semibold text-gray-900">Заявки на вывод</p>
+          <p className="text-sm font-semibold text-white">Заявки на вывод</p>
           {pending.length > 0 && (
             <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-semibold">
               {pending.length} ожидают
@@ -115,24 +115,24 @@ export function AdminFinancePage() {
           )}
         </div>
         {loadingRequests ? (
-          <div className="p-8 text-center text-sm text-gray-400">Загрузка...</div>
+          <div className="p-8 text-center text-sm text-[#6b7194]">Загрузка...</div>
         ) : pending.length === 0 ? (
-          <div className="p-8 text-center text-sm text-gray-400">Нет новых заявок</div>
+          <div className="p-8 text-center text-sm text-[#6b7194]">Нет новых заявок</div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-white/[0.04]">
             {pending.map((req) => (
               <div key={req.id} className="px-5 py-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{req.performerName ?? "—"}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{req.performerPhone ?? "—"} · карта •••• {req.cardLast4}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{formatDate(req.requestedAt)}</p>
+                    <p className="text-sm font-semibold text-white truncate">{req.performerName ?? "—"}</p>
+                    <p className="text-xs text-[#6b7194] mt-0.5">{req.performerPhone ?? "—"} · карта •••• {req.cardLast4}</p>
+                    <p className="text-xs text-[#6b7194] mt-0.5">{formatDate(req.requestedAt)}</p>
                     {req.balanceSnapshot != null && (
-                      <p className="text-xs text-gray-400">Баланс на момент заявки: {formatPrice(req.balanceSnapshot)}</p>
+                      <p className="text-xs text-[#6b7194]">Баланс на момент заявки: {formatPrice(req.balanceSnapshot)}</p>
                     )}
                   </div>
                   <div className="shrink-0 text-right">
-                    <p className="text-lg font-bold text-gray-900">{formatPrice(req.amount)}</p>
+                    <p className="text-lg font-bold text-white">{formatPrice(req.amount)}</p>
                   </div>
                 </div>
 
@@ -155,7 +155,7 @@ export function AdminFinancePage() {
                       </button>
                       <button
                         onClick={() => { setRejectingId(null); setRejectNote(""); }}
-                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-xs font-semibold hover:bg-gray-200 transition-colors"
+                        className="px-4 py-2 bg-gray-100 text-[#a0a5c0] rounded-lg text-xs font-semibold hover:bg-gray-200 transition-colors"
                       >
                         Отмена
                       </button>
@@ -192,21 +192,21 @@ export function AdminFinancePage() {
         <div className="bg-white rounded-xl border border-gray-200 mb-4">
           <button
             onClick={() => setShowHistory((v) => !v)}
-            className="w-full px-5 py-4 flex items-center justify-between text-sm font-semibold text-gray-900 hover:bg-gray-50 transition-colors rounded-xl"
+            className="w-full px-5 py-4 flex items-center justify-between text-sm font-semibold text-white hover:bg-white/[0.03] transition-colors rounded-xl"
           >
             <span>История заявок ({history.length})</span>
-            {showHistory ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+            {showHistory ? <ChevronUp size={16} className="text-[#6b7194]" /> : <ChevronDown size={16} className="text-[#6b7194]" />}
           </button>
           {showHistory && (
             <div className="border-t border-gray-100 overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100">
-                    <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Исполнитель</th>
-                    <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Карта</th>
-                    <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Сумма</th>
-                    <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Статус</th>
-                    <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Дата</th>
+                    <th className="text-left px-5 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Исполнитель</th>
+                    <th className="text-left px-5 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Карта</th>
+                    <th className="text-left px-5 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Сумма</th>
+                    <th className="text-left px-5 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Статус</th>
+                    <th className="text-left px-5 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Дата</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -214,14 +214,14 @@ export function AdminFinancePage() {
                     const s = statusLabel(req.status);
                     return (
                       <tr key={req.id} className="border-b border-gray-50 hover:bg-gray-50">
-                        <td className="px-5 py-3 font-medium text-gray-900">{req.performerName ?? "—"}</td>
-                        <td className="px-5 py-3 text-gray-600">•••• {req.cardLast4}</td>
-                        <td className="px-5 py-3 font-semibold text-gray-900">{formatPrice(req.amount)}</td>
+                        <td className="px-5 py-3 font-medium text-white">{req.performerName ?? "—"}</td>
+                        <td className="px-5 py-3 text-[#8b90a8]">•••• {req.cardLast4}</td>
+                        <td className="px-5 py-3 font-semibold text-white">{formatPrice(req.amount)}</td>
                         <td className="px-5 py-3">
                           <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${s.cls}`}>{s.text}</span>
-                          {req.adminNote && <p className="text-xs text-gray-400 mt-0.5">{req.adminNote}</p>}
+                          {req.adminNote && <p className="text-xs text-[#6b7194] mt-0.5">{req.adminNote}</p>}
                         </td>
-                        <td className="px-5 py-3 text-gray-500 text-xs">{formatDate(req.requestedAt)}</td>
+                        <td className="px-5 py-3 text-[#6b7194] text-xs">{formatDate(req.requestedAt)}</td>
                       </tr>
                     );
                   })}
@@ -235,29 +235,29 @@ export function AdminFinancePage() {
       {/* All performers balances */}
       <div className="bg-white rounded-xl border border-gray-200 mt-4">
         <div className="px-5 py-4 border-b border-gray-100">
-          <p className="text-sm font-semibold text-gray-900">Балансы всех исполнителей</p>
+          <p className="text-sm font-semibold text-white">Балансы всех исполнителей</p>
         </div>
         {isLoadingPerformers ? (
-          <div className="p-8 text-center text-sm text-gray-400">Загрузка...</div>
+          <div className="p-8 text-center text-sm text-[#6b7194]">Загрузка...</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100">
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Исполнитель</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Рейтинг</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Заказов</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Баланс</th>
-                  <th className="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Верификация</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Исполнитель</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Рейтинг</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Заказов</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Баланс</th>
+                  <th className="text-left px-5 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Верификация</th>
                 </tr>
               </thead>
               <tbody>
                 {performers.map((p) => (
-                  <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                    <td className="px-5 py-3 font-medium text-gray-900">{p.name}</td>
+                  <tr key={p.id} className="border-b border-gray-50 hover:bg-white/[0.03] transition-colors">
+                    <td className="px-5 py-3 font-medium text-white">{p.name}</td>
                     <td className="px-5 py-3 text-amber-500 font-semibold">{p.rating.toFixed(1)}</td>
-                    <td className="px-5 py-3 text-gray-700">{p.completedOrders}</td>
-                    <td className="px-5 py-3 font-semibold text-gray-900">{formatPrice(p.balance)}</td>
+                    <td className="px-5 py-3 text-[#a0a5c0]">{p.completedOrders}</td>
+                    <td className="px-5 py-3 font-semibold text-white">{formatPrice(p.balance)}</td>
                     <td className="px-5 py-3">
                       <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
                         p.verificationStatus === "approved" ? "bg-green-100 text-green-700" :
@@ -270,7 +270,7 @@ export function AdminFinancePage() {
                   </tr>
                 ))}
                 {performers.length === 0 && (
-                  <tr><td colSpan={5} className="px-5 py-8 text-center text-gray-400 text-sm">Нет данных</td></tr>
+                  <tr><td colSpan={5} className="px-5 py-8 text-center text-[#6b7194] text-sm">Нет данных</td></tr>
                 )}
               </tbody>
             </table>
@@ -286,10 +286,10 @@ function KpiCard({ label, value, icon, color, loading }: { label: string; value:
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-5">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{label}</p>
+        <p className="text-xs font-semibold text-[#6b7194] uppercase tracking-wider">{label}</p>
         <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${color}`}>{icon}</div>
       </div>
-      <p className="text-2xl font-bold text-gray-900">{value}</p>
+      <p className="text-2xl font-bold text-white">{value}</p>
     </div>
   );
 }

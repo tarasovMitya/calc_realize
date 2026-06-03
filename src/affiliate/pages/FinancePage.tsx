@@ -37,37 +37,37 @@ export function AffiliateFinancePage() {
   return (
     <div className="p-6 max-w-5xl">
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-gray-900">Финансы</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Ваш заработок с исполнителей</p>
+        <h1 className="text-xl font-bold text-white">Финансы</h1>
+        <p className="text-sm text-[#6b7194] mt-0.5">Ваш заработок с исполнителей</p>
       </div>
 
       {/* KPI */}
       <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-2xl p-5 border border-gray-100 flex items-center gap-4">
+        <div className="bg-[#0f1120] rounded-xl p-5 border border-white/[0.06] flex items-center gap-4">
           <div className="w-11 h-11 rounded-xl flex items-center justify-center bg-emerald-50 text-emerald-600">
             <DollarSign size={20} />
           </div>
           <div>
-            <p className="text-xs text-gray-500 font-medium">Итого заработано</p>
-            <p className="text-xl font-bold text-gray-900 mt-0.5">{formatPrice(earnings.reduce((s, e) => s + e.affiliateFee, 0))}</p>
+            <p className="text-xs text-[#6b7194] font-medium">Итого заработано</p>
+            <p className="text-xl font-bold text-white mt-0.5">{formatPrice(earnings.reduce((s, e) => s + e.affiliateFee, 0))}</p>
           </div>
         </div>
-        <div className="bg-white rounded-2xl p-5 border border-gray-100 flex items-center gap-4">
+        <div className="bg-[#0f1120] rounded-xl p-5 border border-white/[0.06] flex items-center gap-4">
           <div className="w-11 h-11 rounded-xl flex items-center justify-center bg-blue-50 text-[#006AFF]">
             <TrendingUp size={20} />
           </div>
           <div>
-            <p className="text-xs text-gray-500 font-medium">За текущий месяц</p>
-            <p className="text-xl font-bold text-gray-900 mt-0.5">{formatPrice(monthTotal)}</p>
+            <p className="text-xs text-[#6b7194] font-medium">За текущий месяц</p>
+            <p className="text-xl font-bold text-white mt-0.5">{formatPrice(monthTotal)}</p>
           </div>
         </div>
-        <div className="bg-white rounded-2xl p-5 border border-gray-100 flex items-center gap-4">
+        <div className="bg-[#0f1120] rounded-xl p-5 border border-white/[0.06] flex items-center gap-4">
           <div className="w-11 h-11 rounded-xl flex items-center justify-center bg-orange-50 text-orange-500">
             <Clock size={20} />
           </div>
           <div>
-            <p className="text-xs text-gray-500 font-medium">Ожидает выплаты</p>
-            <p className="text-xl font-bold text-gray-900 mt-0.5">—</p>
+            <p className="text-xs text-[#6b7194] font-medium">Ожидает выплаты</p>
+            <p className="text-xl font-bold text-white mt-0.5">—</p>
           </div>
         </div>
       </div>
@@ -81,7 +81,7 @@ export function AffiliateFinancePage() {
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               period === opt.value
                 ? "bg-[#006AFF] text-white"
-                : "bg-white border border-gray-200 text-gray-600 hover:border-gray-300"
+                : "border border-white/[0.08] text-[#6b7194] hover:text-white hover:border-white/20" 
             }`}
           >
             {opt.label}
@@ -92,35 +92,35 @@ export function AffiliateFinancePage() {
       {isLoadingEarnings ? (
         <div className="flex justify-center pt-10"><Loader2 className="animate-spin text-[#006AFF]" /></div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
-          <p className="text-gray-500 text-sm">Начислений за выбранный период нет</p>
+        <div className="bg-[#0f1120] rounded-xl border border-white/[0.06] p-10 text-center">
+          <p className="text-[#6b7194] text-sm">Начислений за выбранный период нет</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <div className="bg-[#0f1120] rounded-xl border border-white/[0.06] overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-100">
+            <thead className="bg-[#0c0e1a] border-b border-white/[0.05]">
               <tr>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Дата</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Исполнитель</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Сумма заказа</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Комиссия площадки (10%)</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Мой заработок (15%)</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b7194]">Дата</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b7194]">Исполнитель</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b7194]">Сумма заказа</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b7194]">Комиссия площадки (10%)</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b7194]">Мой заработок (15%)</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-white/[0.04]">
               {filtered.map((e) => (
-                <tr key={e.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3 text-gray-500">{new Date(e.createdAt).toLocaleDateString("ru-RU")}</td>
-                  <td className="px-4 py-3 font-medium text-gray-900">{e.performerName ?? "—"}</td>
-                  <td className="px-4 py-3 text-gray-700">{formatPrice(e.orderAmount)}</td>
-                  <td className="px-4 py-3 text-gray-700">{formatPrice(e.platformFee)}</td>
+                <tr key={e.id} className="hover:bg-white/[0.03] transition-colors">
+                  <td className="px-4 py-3 text-[#6b7194]">{new Date(e.createdAt).toLocaleDateString("ru-RU")}</td>
+                  <td className="px-4 py-3 font-medium text-white">{e.performerName ?? "—"}</td>
+                  <td className="px-4 py-3 text-[#a0a5c0]">{formatPrice(e.orderAmount)}</td>
+                  <td className="px-4 py-3 text-[#a0a5c0]">{formatPrice(e.platformFee)}</td>
                   <td className="px-4 py-3 text-emerald-600 font-semibold">{formatPrice(e.affiliateFee)}</td>
                 </tr>
               ))}
             </tbody>
-            <tfoot className="bg-gray-50 border-t border-gray-100">
+            <tfoot className="bg-[#0c0e1a] border-t border-white/[0.05]">
               <tr>
-                <td colSpan={4} className="px-4 py-3 text-sm font-semibold text-gray-700 text-right">Итого за период:</td>
+                <td colSpan={4} className="px-4 py-3 text-sm font-semibold text-[#a0a5c0] text-right">Итого за период:</td>
                 <td className="px-4 py-3 text-emerald-600 font-bold">{formatPrice(total)}</td>
               </tr>
             </tfoot>

@@ -122,10 +122,10 @@ export function AdminVerificationPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 text-gray-100">
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-gray-900">Верификация</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Проверка и одобрение исполнителей</p>
+        <h1 className="text-xl font-bold text-white">Верификация</h1>
+        <p className="text-sm text-[#6b7194] mt-0.5">Проверка и одобрение исполнителей</p>
       </div>
 
       {/* Status counts */}
@@ -143,8 +143,8 @@ export function AdminVerificationPage() {
           <p className="text-xs font-semibold text-red-600 mt-0.5">Отклонено</p>
         </div>
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-center">
-          <p className="text-2xl font-bold text-gray-600">{notStarted.length}</p>
-          <p className="text-xs font-semibold text-gray-500 mt-0.5">Не заполнено</p>
+          <p className="text-2xl font-bold text-[#8b90a8]">{notStarted.length}</p>
+          <p className="text-xs font-semibold text-[#6b7194] mt-0.5">Не заполнено</p>
         </div>
       </div>
 
@@ -152,7 +152,7 @@ export function AdminVerificationPage() {
         {/* Queue */}
         <div className="flex-1 min-w-0">
           {isLoadingPerformers ? (
-            <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-sm text-gray-400">Загрузка...</div>
+            <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-sm text-[#6b7194]">Загрузка...</div>
           ) : (
             <>
               {queue.length > 0 && (
@@ -199,7 +199,7 @@ export function AdminVerificationPage() {
               )}
 
               {performers.length === 0 && (
-                <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-sm text-gray-400">Нет исполнителей</div>
+                <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-sm text-[#6b7194]">Нет исполнителей</div>
               )}
             </>
           )}
@@ -209,8 +209,8 @@ export function AdminVerificationPage() {
         {selected && (
           <div className="w-80 shrink-0 bg-white rounded-xl border border-gray-200 self-start space-y-0 overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-              <p className="text-sm font-semibold text-gray-900">Анкета исполнителя</p>
-              <button onClick={() => { setSelected(null); setVerRequest(null); }} className="text-gray-400 hover:text-gray-600">
+              <p className="text-sm font-semibold text-white">Анкета исполнителя</p>
+              <button onClick={() => { setSelected(null); setVerRequest(null); }} className="text-[#6b7194] hover:text-[#8b90a8]">
                 <X size={16} />
               </button>
             </div>
@@ -218,13 +218,13 @@ export function AdminVerificationPage() {
             <div className="p-4 space-y-4 max-h-[80vh] overflow-y-auto">
               {/* Profile header */}
               <div>
-                <p className="text-base font-bold text-gray-900">{selected.name}</p>
+                <p className="text-base font-bold text-white">{selected.name}</p>
                 <div className="flex items-center gap-1.5 mt-1 text-amber-500">
                   <Star size={12} fill="currentColor" />
                   <span className="text-xs font-semibold">{selected.rating.toFixed(1)}</span>
-                  <span className="text-xs text-gray-400">· {selected.completedOrders} заказов</span>
+                  <span className="text-xs text-[#6b7194]">· {selected.completedOrders} заказов</span>
                 </div>
-                <div className="mt-2 flex flex-wrap gap-2 text-xs text-gray-500">
+                <div className="mt-2 flex flex-wrap gap-2 text-xs text-[#6b7194]">
                   {selected.phone && <span className="flex items-center gap-1"><Phone size={11} />{selected.phone}</span>}
                   {selected.telegram && <span className="flex items-center gap-1"><MessageCircle size={11} />{selected.telegram}</span>}
                   {selected.city && <span className="flex items-center gap-1"><MapPin size={11} />{selected.city}</span>}
@@ -232,7 +232,7 @@ export function AdminVerificationPage() {
               </div>
 
               {loadingRequest ? (
-                <div className="py-6 text-center text-sm text-gray-400">Загрузка анкеты...</div>
+                <div className="py-6 text-center text-sm text-[#6b7194]">Загрузка анкеты...</div>
               ) : verRequest ? (
                 <>
                   {/* Personal */}
@@ -251,18 +251,18 @@ export function AdminVerificationPage() {
                         {verRequest.passport_url && (
                           <a href={verRequest.passport_url} target="_blank" rel="noopener noreferrer">
                             <img src={verRequest.passport_url} alt="Паспорт" className="w-full aspect-video object-cover rounded-lg border border-gray-200 hover:opacity-90" />
-                            <p className="text-xs text-gray-400 mt-1 text-center">Паспорт</p>
+                            <p className="text-xs text-[#6b7194] mt-1 text-center">Паспорт</p>
                           </a>
                         )}
                         {verRequest.selfie_url && (
                           <a href={verRequest.selfie_url} target="_blank" rel="noopener noreferrer">
                             <img src={verRequest.selfie_url} alt="Селфи" className="w-full aspect-video object-cover rounded-lg border border-gray-200 hover:opacity-90" />
-                            <p className="text-xs text-gray-400 mt-1 text-center">Селфи</p>
+                            <p className="text-xs text-[#6b7194] mt-1 text-center">Селфи</p>
                           </a>
                         )}
                       </div>
                       {!verRequest.passport_url && !verRequest.selfie_url && (
-                        <p className="text-xs text-gray-400">Документы не загружены</p>
+                        <p className="text-xs text-[#6b7194]">Документы не загружены</p>
                       )}
                     </DetailSection>
                   )}
@@ -272,13 +272,13 @@ export function AdminVerificationPage() {
                     {verRequest.specializations && verRequest.specializations.length > 0 && (
                       <div className="flex flex-wrap gap-1 mb-2">
                         {verRequest.specializations.map(s => (
-                          <span key={s} className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full text-xs">{s}</span>
+                          <span key={s} className="px-2 py-0.5 bg-gray-100 text-[#a0a5c0] rounded-full text-xs">{s}</span>
                         ))}
                       </div>
                     )}
                     <Row label="Опыт" value={verRequest.experience_years ? `${verRequest.experience_years} лет` : null} />
                     {verRequest.experience_description && (
-                      <p className="text-xs text-gray-600 bg-gray-50 rounded p-2">{verRequest.experience_description}</p>
+                      <p className="text-xs text-[#8b90a8] bg-gray-50 rounded p-2">{verRequest.experience_description}</p>
                     )}
                     <Row label="Инструменты" value={verRequest.has_tools ? "Есть" : "Нет"} />
                     <Row label="Команда" value={verRequest.works_with_team ? "Работает с командой" : "Работает один"} />
@@ -305,7 +305,7 @@ export function AdminVerificationPage() {
                   </DetailSection>
 
                   {verRequest.submitted_at && (
-                    <p className="text-xs text-gray-400 text-center">
+                    <p className="text-xs text-[#6b7194] text-center">
                       Подано {new Date(verRequest.submitted_at).toLocaleString("ru-RU")}
                     </p>
                   )}
@@ -313,7 +313,7 @@ export function AdminVerificationPage() {
               ) : (
                 <div className="py-4 flex flex-col items-center gap-2 text-center">
                   <Image size={24} className="text-gray-200" />
-                  <p className="text-xs text-gray-400">Исполнитель не заполнил анкету верификации</p>
+                  <p className="text-xs text-[#6b7194]">Исполнитель не заполнил анкету верификации</p>
                 </div>
               )}
 
@@ -342,16 +342,16 @@ export function AdminVerificationPage() {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
             <div className="flex items-center justify-between mb-4">
-              <p className="text-base font-bold text-gray-900">Причина отклонения</p>
-              <button onClick={() => { setRejectModal(false); setRejectReason(""); }} className="text-gray-400 hover:text-gray-600">
+              <p className="text-base font-bold text-white">Причина отклонения</p>
+              <button onClick={() => { setRejectModal(false); setRejectReason(""); }} className="text-[#6b7194] hover:text-[#8b90a8]">
                 <X size={18} />
               </button>
             </div>
-            <p className="text-sm text-gray-500 mb-3">Укажите причину — исполнитель её увидит и сможет исправить</p>
+            <p className="text-sm text-[#6b7194] mb-3">Укажите причину — исполнитель её увидит и сможет исправить</p>
             <div className="flex flex-wrap gap-2 mb-3">
               {["Нечитаемый документ", "Плохое качество фото", "Данные не совпадают", "Неполная анкета", "Недостаточно фото работ"].map(r => (
                 <button key={r} onClick={() => setRejectReason(r)}
-                  className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${rejectReason === r ? "bg-red-600 text-white border-red-600" : "border-gray-200 text-gray-600 hover:border-red-300"}`}
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${rejectReason === r ? "bg-red-600 text-white border-red-600" : "border-gray-200 text-[#8b90a8] hover:border-red-300"}`}
                 >
                   {r}
                 </button>
@@ -366,7 +366,7 @@ export function AdminVerificationPage() {
             />
             <div className="flex gap-2">
               <button onClick={() => { setRejectModal(false); setRejectReason(""); }}
-                className="flex-1 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">
+                className="flex-1 py-2 border border-gray-200 rounded-lg text-sm font-medium text-[#8b90a8] hover:bg-gray-50">
                 Отмена
               </button>
               <button onClick={() => reject(selected.id)} disabled={!rejectReason.trim() || !!actionLoading}
@@ -386,9 +386,9 @@ function Section({ title, icon, border, children }: { title: string; icon: React
     <div className={`bg-white rounded-xl border ${border} mb-4 overflow-hidden`}>
       <div className={`px-5 py-3 border-b border-gray-100 flex items-center gap-2`}>
         {icon}
-        <p className="text-sm font-semibold text-gray-900">{title}</p>
+        <p className="text-sm font-semibold text-white">{title}</p>
       </div>
-      <div className="divide-y divide-gray-50">{children}</div>
+      <div className="divide-y divide-white/[0.04]">{children}</div>
     </div>
   );
 }
@@ -397,10 +397,10 @@ function PerformerRow({ performer, selected, onClick, actions }: {
   performer: AdminPerformer; selected: boolean; onClick: () => void; actions: React.ReactNode;
 }) {
   return (
-    <div onClick={onClick} className={`flex items-center justify-between px-5 py-3 hover:bg-gray-50 transition-colors cursor-pointer ${selected ? "bg-blue-50" : ""}`}>
+    <div onClick={onClick} className={`flex items-center justify-between px-5 py-3 hover:bg-white/[0.03] transition-colors cursor-pointer ${selected ? "bg-blue-50" : ""}`}>
       <div>
-        <p className="text-sm font-medium text-gray-900">{performer.name}</p>
-        <p className="text-xs text-gray-400 mt-0.5">{performer.city || "—"} · {performer.completedOrders} заказов</p>
+        <p className="text-sm font-medium text-white">{performer.name}</p>
+        <p className="text-xs text-[#6b7194] mt-0.5">{performer.city || "—"} · {performer.completedOrders} заказов</p>
       </div>
       {actions}
     </div>
@@ -421,7 +421,7 @@ function ActionBtn({ label, loading, color, onClick }: { label: string; loading:
 function DetailSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">{title}</p>
+      <p className="text-xs font-semibold text-[#6b7194] uppercase tracking-wider mb-2">{title}</p>
       <div className="space-y-1.5">{children}</div>
     </div>
   );
@@ -431,8 +431,8 @@ function Row({ label, value }: { label: string; value: string | null | undefined
   if (!value) return null;
   return (
     <div className="flex items-start justify-between gap-2">
-      <span className="text-xs text-gray-400 shrink-0">{label}</span>
-      <span className="text-xs text-gray-700 text-right">{value}</span>
+      <span className="text-xs text-[#6b7194] shrink-0">{label}</span>
+      <span className="text-xs text-[#a0a5c0] text-right">{value}</span>
     </div>
   );
 }

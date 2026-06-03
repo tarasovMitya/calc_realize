@@ -32,10 +32,10 @@ export function AffiliateOrdersPage() {
   }, [statusFilter]);
 
   return (
-    <div className="p-6">
+    <div className="p-6 text-gray-100">
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-gray-900">Заказы</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Заказы ваших исполнителей</p>
+        <h1 className="text-xl font-bold text-white">Заказы</h1>
+        <p className="text-sm text-[#6b7194] mt-0.5">Заказы ваших исполнителей</p>
       </div>
 
       {/* Filter */}
@@ -47,7 +47,7 @@ export function AffiliateOrdersPage() {
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
               statusFilter === opt.value
                 ? "bg-[#006AFF] text-white"
-                : "bg-white border border-gray-200 text-gray-600 hover:border-gray-300"
+                : "border border-white/[0.08] text-[#6b7194] hover:text-white hover:border-white/20" 
             }`}
           >
             {opt.label}
@@ -58,36 +58,36 @@ export function AffiliateOrdersPage() {
       {isLoadingOrders ? (
         <div className="flex justify-center pt-10"><Loader2 className="animate-spin text-[#006AFF]" /></div>
       ) : orders.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center">
-          <p className="text-gray-500 text-sm">Заказов не найдено</p>
+        <div className="bg-[#0f1120] rounded-xl border border-white/[0.06] p-10 text-center">
+          <p className="text-[#6b7194] text-sm">Заказов не найдено</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <div className="bg-[#0f1120] rounded-xl border border-white/[0.06] overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-100">
+            <thead className="bg-[#0c0e1a] border-b border-white/[0.05]">
               <tr>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Исполнитель</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Услуга</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Адрес</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Сумма</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Дата</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500">Статус</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b7194]">Исполнитель</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b7194]">Услуга</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b7194]">Адрес</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b7194]">Сумма</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b7194]">Дата</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b7194]">Статус</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-white/[0.04]">
               {orders.map((o) => (
-                <tr key={o.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3 font-medium text-gray-900">{o.performerName}</td>
-                  <td className="px-4 py-3 text-gray-600">{o.serviceName ?? o.categoryName}</td>
-                  <td className="px-4 py-3 text-gray-500 max-w-[200px] truncate">{o.address}</td>
-                  <td className="px-4 py-3 text-gray-700 font-medium">{formatPrice(o.priceTotal)}</td>
-                  <td className="px-4 py-3 text-gray-500">
+                <tr key={o.id} className="hover:bg-white/[0.03] transition-colors">
+                  <td className="px-4 py-3 font-medium text-white">{o.performerName}</td>
+                  <td className="px-4 py-3 text-[#8b90a8]">{o.serviceName ?? o.categoryName}</td>
+                  <td className="px-4 py-3 text-[#6b7194] max-w-[200px] truncate">{o.address}</td>
+                  <td className="px-4 py-3 text-[#a0a5c0] font-medium">{formatPrice(o.priceTotal)}</td>
+                  <td className="px-4 py-3 text-[#6b7194]">
                     {o.scheduledDate
                       ? new Date(o.scheduledDate).toLocaleDateString("ru-RU")
                       : new Date(o.createdAt).toLocaleDateString("ru-RU")}
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_COLORS[o.status] ?? "bg-gray-100 text-gray-600"}`}>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_COLORS[o.status] ?? "bg-gray-100 text-[#8b90a8]"}`}>
                       {ORDER_STATUS_LABELS[o.status] ?? o.status}
                     </span>
                   </td>

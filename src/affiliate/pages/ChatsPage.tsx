@@ -78,11 +78,11 @@ export function AffiliateChatsPage() {
       <div className="w-72 shrink-0 border-r border-gray-100 flex flex-col">
         <div className="px-4 pt-4 pb-3 border-b border-gray-100">
           <div className="flex items-center justify-between mb-3">
-            <h1 className="text-base font-bold text-gray-900">Чаты</h1>
-            <span className="text-xs text-gray-400">{filtered.length} / {chats.length}</span>
+            <h1 className="text-base font-bold text-white">Чаты</h1>
+            <span className="text-xs text-[#6b7194]">{filtered.length} / {chats.length}</span>
           </div>
           <div className="relative">
-            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#6b7194] pointer-events-none" />
             <input
               type="text"
               value={search}
@@ -91,7 +91,7 @@ export function AffiliateChatsPage() {
               className="w-full pl-7 pr-7 py-1.5 text-xs border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:border-gray-400 focus:bg-white transition-colors"
             />
             {search && (
-              <button onClick={() => setSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              <button onClick={() => setSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#6b7194] hover:text-[#8b90a8]">
                 <X size={12} />
               </button>
             )}
@@ -106,7 +106,7 @@ export function AffiliateChatsPage() {
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center gap-2 py-12 text-center px-4">
               <MessageSquare size={28} className="text-gray-200" />
-              <p className="text-sm text-gray-400">{chats.length === 0 ? "Чатов пока нет" : "Ничего не найдено"}</p>
+              <p className="text-sm text-[#6b7194]">{chats.length === 0 ? "Чатов пока нет" : "Ничего не найдено"}</p>
             </div>
           ) : (
             filtered.map((chat) => {
@@ -118,10 +118,10 @@ export function AffiliateChatsPage() {
                   className={`w-full text-left px-4 py-3.5 border-b border-gray-50 transition-colors ${isActive ? "bg-gray-100" : "hover:bg-gray-50"}`}
                 >
                   <div className="flex items-start justify-between gap-2 mb-1">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{chat.serviceName ?? "Заказ"}</p>
-                    <span className="text-xs text-gray-400 shrink-0">{timeAgo(chat.createdAt)}</span>
+                    <p className="text-sm font-semibold text-white truncate">{chat.serviceName ?? "Заказ"}</p>
+                    <span className="text-xs text-[#6b7194] shrink-0">{timeAgo(chat.createdAt)}</span>
                   </div>
-                  <p className="text-xs text-gray-400">Исполнитель ↔ Поддержка</p>
+                  <p className="text-xs text-[#6b7194]">Исполнитель ↔ Поддержка</p>
                 </button>
               );
             })
@@ -134,8 +134,8 @@ export function AffiliateChatsPage() {
         {activeChat && user ? (
           <>
             <div className="px-5 py-3.5 border-b border-gray-100 shrink-0">
-              <p className="text-sm font-semibold text-gray-900">{(activeChat as ChatWithMeta).serviceName ?? "Чат"}</p>
-              <p className="text-xs text-gray-400">Исполнитель ↔ Поддержка</p>
+              <p className="text-sm font-semibold text-white">{(activeChat as ChatWithMeta).serviceName ?? "Чат"}</p>
+              <p className="text-xs text-[#6b7194]">Исполнитель ↔ Поддержка</p>
             </div>
             <div className="flex-1 min-h-0">
               <ChatWindow
@@ -153,7 +153,7 @@ export function AffiliateChatsPage() {
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center gap-3">
             <MessageSquare size={36} className="text-gray-200" />
-            <p className="text-sm text-gray-400">Выберите чат слева</p>
+            <p className="text-sm text-[#6b7194]">Выберите чат слева</p>
           </div>
         )}
       </div>

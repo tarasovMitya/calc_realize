@@ -23,12 +23,12 @@ const STATUS_COLORS: Record<string, string> = {
   waiting_client_confirmation: "bg-yellow-100 text-yellow-700",
   accepted: "bg-blue-100 text-blue-700",
   on_the_way: "bg-blue-100 text-blue-700",
-  pending_payment: "bg-gray-100 text-gray-700",
+  pending_payment: "bg-gray-100 text-[#a0a5c0]",
 };
 
 function StatusBadge({ status }: { status: string }) {
   return (
-    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_COLORS[status] ?? "bg-gray-100 text-gray-600"}`}>
+    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_COLORS[status] ?? "bg-gray-100 text-[#8b90a8]"}`}>
       {ORDER_STATUS_LABELS[status] ?? status}
     </span>
   );
@@ -73,11 +73,11 @@ export function AdminOrdersPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 text-gray-100">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Заказы</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{filtered.length} заказов</p>
+          <h1 className="text-xl font-bold text-white">Заказы</h1>
+          <p className="text-sm text-[#6b7194] mt-0.5">{filtered.length} заказов</p>
         </div>
       </div>
 
@@ -87,13 +87,13 @@ export function AdminOrdersPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as OrderStatusFilter)}
-            className="appearance-none bg-white border border-gray-200 rounded-lg pl-3 pr-8 py-2 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300"
+            className="appearance-none bg-white border border-gray-200 rounded-lg pl-3 pr-8 py-2 text-sm font-medium text-[#a0a5c0] focus:outline-none focus:ring-2 focus:ring-gray-300"
           >
             {STATUS_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>
-          <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#6b7194] pointer-events-none" />
         </div>
         <input
           type="text"
@@ -108,19 +108,19 @@ export function AdminOrdersPage() {
         {/* Table */}
         <div className="flex-1 bg-white rounded-xl border border-gray-200 overflow-hidden">
           {isLoadingOrders ? (
-            <div className="p-8 text-center text-sm text-gray-400">Загрузка...</div>
+            <div className="p-8 text-center text-sm text-[#6b7194]">Загрузка...</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100">
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Клиент</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Услуга</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Исполнитель</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Сумма</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Статус</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Дата</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">ID</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Клиент</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Услуга</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Исполнитель</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Сумма</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Статус</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b7194] uppercase tracking-wider">Дата</th>
                     <th className="px-4 py-3" />
                   </tr>
                 </thead>
@@ -129,15 +129,15 @@ export function AdminOrdersPage() {
                     <tr
                       key={order.id}
                       onClick={() => setSelectedId(order.id === selectedId ? null : order.id)}
-                      className={`border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer ${selectedId === order.id ? "bg-blue-50" : ""}`}
+                      className={`border-b border-gray-50 hover:bg-white/[0.03] transition-colors cursor-pointer ${selectedId === order.id ? "bg-blue-50" : ""}`}
                     >
-                      <td className="px-4 py-3 font-mono text-xs text-gray-400">{order.id.slice(0, 8)}…</td>
-                      <td className="px-4 py-3 font-medium text-gray-900">{order.clientName}</td>
-                      <td className="px-4 py-3 text-gray-600 max-w-[160px] truncate">{order.serviceName}</td>
-                      <td className="px-4 py-3 text-gray-600">{order.performerName ?? <span className="text-gray-300">—</span>}</td>
-                      <td className="px-4 py-3 font-semibold text-gray-900">{formatPrice(order.priceTotal)}</td>
+                      <td className="px-4 py-3 font-mono text-xs text-[#6b7194]">{order.id.slice(0, 8)}…</td>
+                      <td className="px-4 py-3 font-medium text-white">{order.clientName}</td>
+                      <td className="px-4 py-3 text-[#8b90a8] max-w-[160px] truncate">{order.serviceName}</td>
+                      <td className="px-4 py-3 text-[#8b90a8]">{order.performerName ?? <span className="text-gray-300">—</span>}</td>
+                      <td className="px-4 py-3 font-semibold text-white">{formatPrice(order.priceTotal)}</td>
                       <td className="px-4 py-3"><StatusBadge status={order.status} /></td>
-                      <td className="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">
+                      <td className="px-4 py-3 text-[#6b7194] text-xs whitespace-nowrap">
                         {new Date(order.createdAt).toLocaleDateString("ru-RU")}
                       </td>
                       <td className="px-4 py-3">
@@ -163,7 +163,7 @@ export function AdminOrdersPage() {
                     </tr>
                   ))}
                   {filtered.length === 0 && (
-                    <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-400 text-sm">Нет заказов</td></tr>
+                    <tr><td colSpan={8} className="px-4 py-8 text-center text-[#6b7194] text-sm">Нет заказов</td></tr>
                   )}
                 </tbody>
               </table>
@@ -175,8 +175,8 @@ export function AdminOrdersPage() {
         {selectedOrder && (
           <div className="w-72 shrink-0 bg-white rounded-xl border border-gray-200 p-4 self-start space-y-3">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold text-gray-900">Детали заказа</p>
-              <button onClick={() => setSelectedId(null)} className="text-gray-400 hover:text-gray-600 text-lg leading-none">×</button>
+              <p className="text-sm font-semibold text-white">Детали заказа</p>
+              <button onClick={() => setSelectedId(null)} className="text-[#6b7194] hover:text-[#8b90a8] text-lg leading-none">×</button>
             </div>
             <div className="space-y-2 text-sm">
               <Row label="ID" value={selectedOrder.id.slice(0, 12) + "…"} mono />
@@ -192,19 +192,19 @@ export function AdminOrdersPage() {
               {selectedOrder.clientRating && <Row label="Рейтинг" value={`${selectedOrder.clientRating} / 5`} />}
               {selectedOrder.disputeComment && (
                 <div>
-                  <p className="text-xs text-gray-400 mb-0.5">Комментарий к спору</p>
-                  <p className="text-gray-700 text-xs bg-orange-50 rounded p-2">{selectedOrder.disputeComment}</p>
+                  <p className="text-xs text-[#6b7194] mb-0.5">Комментарий к спору</p>
+                  <p className="text-[#a0a5c0] text-xs bg-orange-50 rounded p-2">{selectedOrder.disputeComment}</p>
                 </div>
               )}
               {selectedOrder.completionComment && (
                 <div>
-                  <p className="text-xs text-gray-400 mb-0.5">Комментарий исполнителя</p>
-                  <p className="text-gray-700 text-xs bg-gray-50 rounded p-2">{selectedOrder.completionComment}</p>
+                  <p className="text-xs text-[#6b7194] mb-0.5">Комментарий исполнителя</p>
+                  <p className="text-[#a0a5c0] text-xs bg-gray-50 rounded p-2">{selectedOrder.completionComment}</p>
                 </div>
               )}
             </div>
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Статус</p>
+              <p className="text-xs font-semibold text-[#6b7194] uppercase tracking-wider mb-1.5">Статус</p>
               <StatusBadge status={selectedOrder.status} />
             </div>
           </div>
@@ -217,7 +217,7 @@ export function AdminOrdersPage() {
 function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div>
-      <p className="text-xs text-gray-400">{label}</p>
+      <p className="text-xs text-[#6b7194]">{label}</p>
       <p className={`text-gray-800 ${mono ? "font-mono text-xs" : ""}`}>{value}</p>
     </div>
   );
