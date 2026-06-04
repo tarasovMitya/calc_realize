@@ -55,14 +55,14 @@ export function AdminAnalyticsPage() {
 
       {/* Time range + Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
-        <div className="flex gap-1 bg-gray-100 p-1 rounded-xl shrink-0">
+        <div className="flex gap-1 bg-white/[0.04] p-1 rounded-xl shrink-0">
           {TIME_RANGES.map((r) => (
             <button
               key={r.value}
               onClick={() => setTimeRange(r.value)}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
                 timeRange === r.value
-                  ? "bg-white text-white shadow-sm"
+                  ? "bg-[#006AFF] text-white shadow-sm"
                   : "text-[#6b7194] hover:text-[#a0a5c0]"
               }`}
             >
@@ -71,14 +71,14 @@ export function AdminAnalyticsPage() {
           ))}
         </div>
 
-        <div className="flex gap-1 bg-gray-100 p-1 rounded-xl overflow-x-auto">
+        <div className="flex gap-1 bg-white/[0.04] p-1 rounded-xl overflow-x-auto">
           {TABS.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
                 tab === t.id
-                  ? "bg-white text-white shadow-sm"
+                  ? "bg-[#006AFF] text-white shadow-sm"
                   : "text-[#6b7194] hover:text-[#a0a5c0]"
               }`}
             >

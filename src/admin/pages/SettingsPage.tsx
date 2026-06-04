@@ -116,7 +116,7 @@ export function AdminSettingsPage() {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 mb-4">
+    <div className="bg-[#0f1120] rounded-xl border border-white/[0.06] p-5 mb-4">
       <p className="text-sm font-semibold text-white mb-4">{title}</p>
       {children}
     </div>
@@ -140,7 +140,7 @@ function Field({ label, value, onChange, type, min, max }: {
         onChange={(e) => onChange(e.target.value)}
         min={min}
         max={max}
-        className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+        className="flex-1 border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
       />
     </div>
   );

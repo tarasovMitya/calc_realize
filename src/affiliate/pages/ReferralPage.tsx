@@ -70,7 +70,7 @@ export function AffiliateReferralPage() {
           <div className="bg-[#0f1120] rounded-xl border border-white/[0.06] p-5 mb-4">
             <p className="text-sm font-semibold text-[#a0a5c0] mb-3">Ваша реферальная ссылка</p>
             <div className="flex items-center gap-2">
-              <div className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-[#a0a5c0] font-mono truncate">
+              <div className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm text-[#a0a5c0] font-mono truncate">
                 {link ?? "—"}
               </div>
               <button

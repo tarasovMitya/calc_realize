@@ -37,7 +37,7 @@ export function AffiliateGuard() {
 
   if (role !== "affiliate_manager") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-[#080a14]">
         <div className="text-center">
           <p className="text-2xl font-bold text-gray-900 mb-2">Нет доступа</p>
           <p className="text-gray-500 text-sm">Эта страница доступна только аффилейт-менеджерам</p>

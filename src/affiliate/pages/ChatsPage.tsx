@@ -76,8 +76,8 @@ export function AffiliateChatsPage() {
   return (
     <div className="flex h-full">
       {/* Left panel */}
-      <div className="w-72 shrink-0 border-r border-gray-100 flex flex-col">
-        <div className="px-4 pt-4 pb-3 border-b border-gray-100">
+      <div className="w-72 shrink-0 border-r border-white/[0.06] flex flex-col">
+        <div className="px-4 pt-4 pb-3 border-b border-white/[0.06]">
           <div className="flex items-center justify-between mb-3">
             <h1 className="text-base font-bold text-white">Чаты</h1>
             <span className="text-xs text-[#6b7194]">{filtered.length} / {chats.length}</span>
@@ -89,7 +89,8 @@ export function AffiliateChatsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Поиск..."
-              className="w-full pl-7 pr-7 py-1.5 text-xs border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:border-gray-400 focus:bg-white transition-colors"
+              className="w-full pl-7 pr-7 py-1.5 text-xs rounded-lg text-white placeholder:text-[#4a4f68] focus:outline-none focus:ring-1 focus:ring-[#006AFF]/40 transition-colors"
+              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)" }}
             />
             {search && (
               <button onClick={() => setSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#6b7194] hover:text-[#8b90a8]">
@@ -116,7 +117,8 @@ export function AffiliateChatsPage() {
                 <button
                   key={chat.id}
                   onClick={() => openChatById(chat.id, chat)}
-                  className={`w-full text-left px-4 py-3.5 border-b border-gray-50 transition-colors ${isActive ? "bg-gray-100" : "hover:bg-gray-50"}`}
+                  className={`w-full text-left px-4 py-3.5 border-b transition-colors ${isActive ? "bg-white/[0.06]" : "hover:bg-white/[0.03]"}`}
+                  style={{ borderColor: "rgba(255,255,255,0.04)" }}
                 >
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <p className="text-sm font-semibold text-white truncate">{chat.serviceName ?? "Заказ"}</p>
@@ -134,7 +136,7 @@ export function AffiliateChatsPage() {
       <div className="flex-1 flex flex-col min-w-0">
         {activeChat && user ? (
           <>
-            <div className="px-5 py-3.5 border-b border-gray-100 shrink-0">
+            <div className="px-5 py-3.5 border-b border-white/[0.06] shrink-0">
               <p className="text-sm font-semibold text-white">{(activeChat as ChatWithMeta).serviceName ?? "Чат"}</p>
               <p className="text-xs text-[#6b7194]">Исполнитель ↔ Поддержка</p>
             </div>

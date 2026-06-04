@@ -208,3 +208,119 @@ Railway dashboard → project `exquisite-adaptation` → service `calc_realize`
 - [ ] Протестировать MVP flow end-to-end в проде
 - [ ] Протестировать Link mode (привязка Telegram к email-аккаунту)
 - [ ] Добавить `sourcemap: true` в `vite.config` для читаемых stack trace
+
+---
+
+## Изменения сессии (2026-06-03 / 2026-06-04)
+
+### 1. Кабинет аффилейт-менеджера (`/affiliate`)
+
+**База данных (Supabase — `qkhccmlrrhdfsjqnfyiu`)**
+- `profiles` — добавлены `affiliate_code TEXT UNIQUE`, `platform_commission_rate NUMERIC(5,4) DEFAULT 0.10`
+- `performer_profiles` — добавлена `affiliate_manager_id UUID REFERENCES auth.users(id)`
+- Новая таблица `affiliate_tasks` — задачи от администратора (title, description, priority, target, due_date)
+- Новая таблица `affiliate_task_completions` — отметки о выполнении
+- Новая таблица `affiliate_earnings_log` — лог комиссий
+- RLS-политики: аффилейт видит только своих исполнителей, заказы, чаты, задачи, начисления
+- Триггер `trg_affiliate_earnings` — создаёт запись при статусе заказа `completed`
+- Функция `record_affiliate_earnings()` — 15% от 10% от суммы заказа
+
+**Новые файлы**
+| Файл | Назначение |
+|---|---|
+| `src/affiliate/types/index.ts` | Типы: AffiliatePerformer, AffiliateOrder, AffiliateEarning, AffiliateTask, AffiliateStats |
+| `src/affiliate/lib/affiliateDb.ts` | DB-слой |
+| `src/affiliate/store/affiliateStore.ts` | Zustand store |
+| `src/affiliate/components/AffiliateGuard.tsx` | Проверка роли `affiliate_manager` |
+| `src/affiliate/components/layout/AffiliateLayout.tsx` | Layout с сайдбаром |
+| `src/affiliate/components/layout/AffiliateSidebar.tsx` | Боковая панель |
+| `src/affiliate/pages/OverviewPage.tsx` | KPI-карточки |
+| `src/affiliate/pages/PerformersPage.tsx` | Таблица исполнителей (read-only) |
+| `src/affiliate/pages/OrdersPage.tsx` | Заказы с фильтром (read-only) |
+| `src/affiliate/pages/DisputesPage.tsx` | Споры |
+| `src/affiliate/pages/ChatsPage.tsx` | Чаты `performer_admin` |
+| `src/affiliate/pages/FinancePage.tsx` | Таблица начислений |
+| `src/affiliate/pages/TasksPage.tsx` | Задачник |
+| `src/affiliate/pages/ReferralPage.tsx` | Реферальная ссылка |
+
+**Реферальная регистрация**
+- `src/performer/pages/PerformerAuthPage.tsx` — при `?ref=CODE` сохраняет код в localStorage
+- `src/performer/onboarding/PerformerOnboarding.tsx` — после онбординга вызывает `affiliateLinkPerformerByCode()`
+
+**Ограничения доступа — аффилейт НЕ видит:**
+- Логи ошибок и системные события
+- Глобальные финансы платформы
+- Настройки калькулятора и ставок
+- Продуктовые метрики и аналитику
+- Верификацию и управление клиентами
+
+---
+
+### 2. Dark SaaS UI редизайн кабинетов
+
+**Источник:** https://saas-ui.dev/nextjs-starter-kit
+
+**Цвета:** фон `#080a14`, сайдбар `#0c0e1a`, карточки `#0f1120`, акцент `#006AFF`
+
+**Изменения сайдбаров (Admin + Affiliate):**
+- Поиск по разделам
+- Active-пункт: синий highlight + левый акцент
+- Аватар с инициалами в footer
+
+**Обновлённые файлы:**
+- `src/admin/components/layout/AdminSidebar.tsx`
+- `src/admin/components/layout/AdminLayout.tsx`
+- `src/affiliate/components/layout/AffiliateSidebar.tsx`
+- `src/affiliate/components/layout/AffiliateLayout.tsx`
+- Все страницы в `src/admin/pages/` и `src/affiliate/pages/`
+
+---
+
+### 3. Исправления TypeScript (билд Railway)
+
+**Коммит `7c5d2ee`**
+- `ChatsPage.tsx` — убран неиспользуемый `performers`, добавлен `clientId: null` в маппинг
+- `TasksPage.tsx` — убран неиспользуемый импорт `AlertTriangle`
+
+**Коммит `827b6cb`**
+- `admin/pages/OverviewPage.tsx` — `style={{...}}` случайно попал внутрь `className` при sed-замене, вынесен отдельно
+
+---
+
+### 4. Скрытая страница входа для сотрудников
+
+**Файл:** `src/pages/StaffAuthPage.tsx`
+**Маршрут:** `/staff` (не упоминается нигде на сайте)
+- Тёмный дизайн, вход по OTP
+- `shouldCreateUser: false` — новые аккаунты создать нельзя
+- Редирект по роли: `admin`/`super_admin` → `/admin`, `affiliate_manager` → `/affiliate`
+
+**Ссылка:** https://slot-home.ru/staff
+
+---
+
+### 5. Пользователь miltygang@yandex.ru
+
+- **UUID:** `482be7d5-af73-4eae-bae1-9be26e27f98c`
+- **Роль:** `affiliate_manager` — установлена вручную через Supabase SQL
+- **Доступ:** кабинет `/affiliate`
+
+---
+
+### 6. Коммиты этой сессии
+
+| Хэш | Описание |
+|---|---|
+| `c784abb` | Add affiliate manager cabinet (/affiliate) |
+| `8e7800e` | Redesign admin + affiliate cabinets to dark SaaS UI, add CHANGELOG |
+| `7c5d2ee` | fix: TypeScript build errors in affiliate cabinet |
+| `827b6cb` | fix: malformed JSX in AdminOverviewPage skeleton |
+| `70a169e` | feat: hidden staff login page at /staff |
+
+---
+
+### 7. TODO (не реализовано)
+
+- [ ] Форма создания задач для аффилейтов в `/admin/settings` (вкладка есть, форма — нет)
+- [ ] Логика выплат аффилейтам (поле «Ожидает выплаты» — заглушка)
+- [ ] QR-код на странице реферальной ссылки

@@ -15,12 +15,13 @@ const STATUS_OPTIONS = [
 ];
 
 const STATUS_COLORS: Record<string, string> = {
-  completed: "bg-green-100 text-green-700",
-  cancelled: "bg-red-100 text-red-700",
-  dispute_opened: "bg-orange-100 text-orange-700",
-  in_progress: "bg-blue-100 text-blue-700",
-  searching_performer: "bg-purple-100 text-purple-700",
-  waiting_client_confirmation: "bg-yellow-100 text-yellow-700",
+  completed: "bg-green-900/40 text-green-400",
+  cancelled: "bg-red-900/40 text-red-400",
+  dispute_opened: "bg-orange-900/40 text-orange-400",
+  in_progress: "bg-blue-900/40 text-blue-400",
+  searching_performer: "bg-purple-900/40 text-purple-400",
+  waiting_client_confirmation: "bg-yellow-900/40 text-yellow-400",
+  performer_assigned: "bg-[#001a4d] text-[#6699ff]",
 };
 
 export function AffiliateOrdersPage() {
@@ -87,7 +88,7 @@ export function AffiliateOrdersPage() {
                       : new Date(o.createdAt).toLocaleDateString("ru-RU")}
                   </td>
                   <td className="px-4 py-3">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_COLORS[o.status] ?? "bg-gray-100 text-[#8b90a8]"}`}>
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_COLORS[o.status] ?? "bg-white/[0.06] text-[#8b90a8]"}`}>
                       {ORDER_STATUS_LABELS[o.status] ?? o.status}
                     </span>
                   </td>

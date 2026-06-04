@@ -41,8 +41,8 @@ export function AdminSidebar() {
       {/* Header */}
       <div className="px-4 py-4 border-b border-white/[0.06]">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-[#006AFF] flex items-center justify-center shrink-0">
-            <img src="/logo-square.svg" alt="" className="w-4 h-4 brightness-0 invert" />
+          <div className="shrink-0">
+            <img src="/logo-square.svg" alt="SLOT" className="w-8 h-8" />
           </div>
           <div className="min-w-0">
             <p className="text-white text-sm font-semibold leading-tight truncate">SLOT Admin</p>

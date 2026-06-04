@@ -40,6 +40,15 @@ export interface AffiliateEarning {
   createdAt: string;
 }
 
+export type TaskCategory = "task" | "instruction" | "script" | "access" | "creative";
+export type TaskWorkflowStatus = "todo" | "in_progress" | "needs_clarification" | "done";
+
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
 export interface AffiliateTask {
   id: string;
   title: string;
@@ -49,6 +58,9 @@ export interface AffiliateTask {
   dueDate: string | null;
   createdAt: string;
   completedAt?: string | null;
+  category: TaskCategory;
+  workflowStatus: TaskWorkflowStatus;
+  checklist: ChecklistItem[];
 }
 
 export interface AffiliateStats {
@@ -65,7 +77,30 @@ export const PRIORITY_LABELS: Record<string, string> = {
 };
 
 export const PRIORITY_COLORS: Record<string, string> = {
-  low: "bg-gray-100 text-gray-600",
-  normal: "bg-blue-100 text-blue-700",
-  high: "bg-orange-100 text-orange-700",
+  low: "bg-[#1a1f35] text-[#6b7194]",
+  normal: "bg-[#001a4d] text-[#6699ff]",
+  high: "bg-[#2d1200] text-[#ff6b35]",
+};
+
+export const CATEGORY_LABELS: Record<TaskCategory, string> = {
+  task: "Задача",
+  instruction: "Инструкция",
+  script: "Скрипт",
+  access: "Доступ",
+  creative: "Креатив",
+};
+
+export const CATEGORY_COLORS: Record<TaskCategory, string> = {
+  task: "bg-[#001a4d] text-[#6699ff]",
+  instruction: "bg-[#001a2d] text-[#00aaff]",
+  script: "bg-[#1a0d2d] text-[#aa66ff]",
+  access: "bg-[#002d1a] text-[#00cc66]",
+  creative: "bg-[#2d1a00] text-[#ffaa33]",
+};
+
+export const WORKFLOW_LABELS: Record<TaskWorkflowStatus, string> = {
+  todo: "Необходимо выполнить",
+  in_progress: "В работе",
+  needs_clarification: "Требует уточнения",
+  done: "Выполнено",
 };

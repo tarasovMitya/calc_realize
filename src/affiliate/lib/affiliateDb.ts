@@ -1,5 +1,5 @@
 import { supabase } from "../../lib/supabase";
-import type { AffiliatePerformer, AffiliateOrder, AffiliateEarning, AffiliateTask, AffiliateStats } from "../types";
+import type { AffiliatePerformer, AffiliateOrder, AffiliateEarning, AffiliateTask, AffiliateStats, ChecklistItem, TaskCategory, TaskWorkflowStatus } from "../types";
 
 // ─── Stats ────────────────────────────────────────────────────────────────────
 
@@ -162,7 +162,14 @@ export async function affiliateLoadTasks(userId: string): Promise<AffiliateTask[
     dueDate: (r.due_date as string) ?? null,
     createdAt: (r.created_at as string) ?? "",
     completedAt: completionMap[r.id as string] ?? null,
+    category: ((r.category as string) ?? "task") as TaskCategory,
+    workflowStatus: ((r.workflow_status as string) ?? "todo") as TaskWorkflowStatus,
+    checklist: (r.checklist as ChecklistItem[]) ?? [],
   }));
+}
+
+export async function affiliateUpdateChecklist(taskId: string, checklist: ChecklistItem[]): Promise<void> {
+  await supabase.from("affiliate_tasks").update({ checklist }).eq("id", taskId);
 }
 
 export async function affiliateMarkTaskDone(taskId: string, affiliateId: string): Promise<void> {
@@ -238,6 +245,7 @@ export async function adminCreateAffiliateTask(task: {
   target: string;
   dueDate: string | null;
   createdBy: string;
+  category?: string;
 }): Promise<void> {
   await supabase.from("affiliate_tasks").insert({
     title: task.title,
@@ -246,16 +254,39 @@ export async function adminCreateAffiliateTask(task: {
     target: task.target,
     due_date: task.dueDate || null,
     created_by: task.createdBy,
+    category: task.category ?? "task",
+    workflow_status: "todo",
+    checklist: [],
   });
+}
+
+export async function adminUpdateAffiliateTask(taskId: string, patch: {
+  title?: string;
+  description?: string;
+  priority?: string;
+  target?: string;
+  dueDate?: string | null;
+  category?: string;
+  workflowStatus?: string;
+  checklist?: ChecklistItem[];
+}): Promise<void> {
+  const update: Record<string, unknown> = {};
+  if (patch.title !== undefined) update.title = patch.title;
+  if (patch.description !== undefined) update.description = patch.description;
+  if (patch.priority !== undefined) update.priority = patch.priority;
+  if (patch.target !== undefined) update.target = patch.target;
+  if (patch.dueDate !== undefined) update.due_date = patch.dueDate || null;
+  if (patch.category !== undefined) update.category = patch.category;
+  if (patch.workflowStatus !== undefined) update.workflow_status = patch.workflowStatus;
+  if (patch.checklist !== undefined) update.checklist = patch.checklist;
+  await supabase.from("affiliate_tasks").update(update).eq("id", taskId);
 }
 
 export async function adminDeleteAffiliateTask(taskId: string): Promise<void> {
   await supabase.from("affiliate_tasks").delete().eq("id", taskId);
 }
 
-export async function adminLoadAffiliateTasks(): Promise<
-  (AffiliateTask & { createdByEmail?: string })[]
-> {
+export async function adminLoadAffiliateTasks(): Promise<AffiliateTask[]> {
   const { data: tasks } = await supabase
     .from("affiliate_tasks")
     .select("*")
@@ -272,6 +303,9 @@ export async function adminLoadAffiliateTasks(): Promise<
     dueDate: (r.due_date as string) ?? null,
     createdAt: (r.created_at as string) ?? "",
     completedAt: null,
+    category: ((r.category as string) ?? "task") as TaskCategory,
+    workflowStatus: ((r.workflow_status as string) ?? "todo") as TaskWorkflowStatus,
+    checklist: (r.checklist as ChecklistItem[]) ?? [],
   }));
 }
 

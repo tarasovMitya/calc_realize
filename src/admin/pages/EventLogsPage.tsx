@@ -179,14 +179,14 @@ export function AdminEventLogsPage() {
               placeholder="Поиск..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-8 pr-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+              className="w-full pl-8 pr-3 py-2 border border-white/[0.08] rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#006AFF]/40"
             />
           </div>
           {tab === "events" && (
             <select
               value={eventFilter}
               onChange={(e) => setEventFilter(e.target.value)}
-              className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+              className="border border-white/[0.08] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#006AFF]/40"
             >
               {uniqueEventNames.map((n) => (
                 <option key={n} value={n}>{n === "all" ? "Все события" : n}</option>
@@ -197,12 +197,12 @@ export function AdminEventLogsPage() {
       )}
 
       {loading ? (
-        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center text-sm text-[#6b7194]">Загрузка...</div>
+        <div className="bg-[#0f1120] rounded-xl border border-white/[0.06] p-8 text-center text-sm text-[#6b7194]">Загрузка...</div>
       ) : (
         <>
           {/* Events tab */}
           {tab === "events" && (
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-[#0f1120] rounded-xl border border-white/[0.06] overflow-hidden">
               <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
                 <p className="text-sm font-semibold text-white">Последние события</p>
                 <span className="text-xs text-[#6b7194]">{filteredEvents.length} записей</span>
@@ -244,7 +244,7 @@ export function AdminEventLogsPage() {
                         {expandedId === e.id && e.metadata && (
                           <tr key={e.id + "_meta"} className="bg-[#0c0e1a] border-b border-white/[0.05]">
                             <td colSpan={5} className="px-4 py-2.5">
-                              <pre className="text-xs text-[#8b90a8] whitespace-pre-wrap font-mono bg-gray-100 rounded p-2">
+                              <pre className="text-xs text-[#8b90a8] whitespace-pre-wrap font-mono bg-white/[0.04] rounded p-2">
                                 {JSON.stringify(e.metadata, null, 2)}
                               </pre>
                             </td>
@@ -263,7 +263,7 @@ export function AdminEventLogsPage() {
 
           {/* Errors tab */}
           {tab === "errors" && (
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-[#0f1120] rounded-xl border border-white/[0.06] overflow-hidden">
               <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
                 <p className="text-sm font-semibold text-white">Журнал ошибок</p>
                 <span className="text-xs text-[#6b7194]">{filteredErrors.length} записей</span>
@@ -304,7 +304,7 @@ export function AdminEventLogsPage() {
                         {expandedId === e.id && e.stack_trace && (
                           <tr key={e.id + "_stack"} className="bg-red-50/20 border-b border-gray-100">
                             <td colSpan={5} className="px-4 py-2.5">
-                              <pre className="text-xs text-[#8b90a8] whitespace-pre-wrap font-mono bg-gray-100 rounded p-2 max-h-40 overflow-auto">
+                              <pre className="text-xs text-[#8b90a8] whitespace-pre-wrap font-mono bg-white/[0.04] rounded p-2 max-h-40 overflow-auto">
                                 {e.stack_trace}
                               </pre>
                             </td>
@@ -323,7 +323,7 @@ export function AdminEventLogsPage() {
 
           {/* Funnel tab */}
           {tab === "funnel" && (
-            <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <div className="bg-[#0f1120] rounded-xl border border-white/[0.06] p-5">
               <p className="text-sm font-semibold text-white mb-5">Воронка конверсии</p>
               <div className="space-y-3">
                 {FUNNEL_EVENTS.map((f, i) => {
@@ -346,7 +346,7 @@ export function AdminEventLogsPage() {
                           <span className="text-sm font-bold text-white w-10 text-right">{count}</span>
                         </div>
                       </div>
-                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-2 bg-white/[0.06] rounded-full overflow-hidden">
                         <div
                           className="h-full bg-blue-500 rounded-full transition-all"
                           style={{ width: `${pct}%` }}
@@ -361,7 +361,7 @@ export function AdminEventLogsPage() {
 
           {/* Audit tab */}
           {tab === "audit" && (
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-[#0f1120] rounded-xl border border-white/[0.06] overflow-hidden">
               <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
                 <p className="text-sm font-semibold text-white">Журнал безопасности</p>
                 <span className="text-xs text-[#6b7194]">{auditLogs.length} записей</span>
@@ -402,7 +402,7 @@ export function AdminEventLogsPage() {
                         {expandedId === String(log.id) && log.details && Object.keys(log.details).length > 0 && (
                           <tr key={log.id + "_detail"} className="bg-[#0c0e1a] border-b border-white/[0.05]">
                             <td colSpan={5} className="px-4 py-2.5">
-                              <pre className="text-xs text-[#8b90a8] whitespace-pre-wrap font-mono bg-gray-100 rounded p-2">
+                              <pre className="text-xs text-[#8b90a8] whitespace-pre-wrap font-mono bg-white/[0.04] rounded p-2">
                                 {JSON.stringify(log.details, null, 2)}
                               </pre>
                             </td>
