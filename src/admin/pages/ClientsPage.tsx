@@ -39,13 +39,13 @@ export function AdminClientsPage() {
           placeholder="Поиск по имени, email, телефону..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full max-w-sm bg-white border border-white/[0.08] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+          className="w-full max-w-sm bg-[#0f1120] border border-white/[0.08] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#006AFF]/40"
         />
       </div>
 
       <div className="flex gap-4">
         {/* Table */}
-        <div className="flex-1 bg-white rounded-xl border border-white/[0.08] overflow-hidden">
+        <div className="flex-1 bg-[#0f1120] rounded-xl border border-white/[0.08] overflow-hidden">
           {isLoadingClients ? (
             <div className="p-8 text-center text-sm text-[#6b7194]">Загрузка...</div>
           ) : (
@@ -65,7 +65,7 @@ export function AdminClientsPage() {
                     <tr
                       key={c.id}
                       onClick={() => setSelected(c.id === selected?.id ? null : c)}
-                      className={`border-b border-white/[0.04] hover:bg-white/[0.03] transition-colors cursor-pointer ${selected?.id === c.id ? "bg-blue-50" : ""}`}
+                      className={`border-b border-white/[0.04] hover:bg-white/[0.03] transition-colors cursor-pointer ${selected?.id === c.id ? "bg-[#006AFF]/10" : ""}`}
                     >
                       <td className="px-5 py-3 font-medium text-white">{c.name}</td>
                       <td className="px-5 py-3 text-[#8b90a8]">{c.email}</td>
@@ -87,7 +87,7 @@ export function AdminClientsPage() {
 
         {/* Detail panel */}
         {selected && (
-          <div className="w-72 shrink-0 bg-white rounded-xl border border-white/[0.08] p-4 self-start space-y-4">
+          <div className="w-72 shrink-0 bg-[#0f1120] rounded-xl border border-white/[0.08] p-4 self-start space-y-4">
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold text-white">Профиль клиента</p>
               <button onClick={() => setSelected(null)} className="text-[#6b7194] hover:text-[#8b90a8] text-lg leading-none">×</button>
@@ -130,14 +130,14 @@ export function AdminClientsPage() {
               ) : (
                 <div className="space-y-2">
                   {clientOrders.slice(0, 5).map((o) => (
-                    <div key={o.id} className="bg-gray-50 rounded-lg p-2.5 text-xs">
-                      <p className="font-medium text-gray-800 truncate">{o.serviceName}</p>
+                    <div key={o.id} className="bg-white/[0.04] rounded-lg p-2.5 text-xs">
+                      <p className="font-medium text-white truncate">{o.serviceName}</p>
                       <div className="flex items-center justify-between mt-0.5">
                         <span className="text-[#6b7194]">{new Date(o.createdAt).toLocaleDateString("ru-RU")}</span>
                         <span className={`px-1.5 py-0.5 rounded-full font-semibold ${
                           o.status === "completed" ? "bg-green-100 text-green-700" :
                           o.status === "cancelled" ? "bg-red-100 text-red-700" :
-                          "bg-blue-100 text-blue-700"
+                          "bg-[#001a4d] text-blue-700"
                         }`}>
                           {o.status === "completed" ? "Завершён" : o.status === "cancelled" ? "Отменён" : "Активный"}
                         </span>

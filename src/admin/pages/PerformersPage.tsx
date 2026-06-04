@@ -65,13 +65,13 @@ export function AdminPerformersPage() {
           placeholder="Поиск по имени, телефону, городу..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full max-w-sm bg-white border border-white/[0.08] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+          className="w-full max-w-sm bg-[#0f1120] border border-white/[0.08] rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#006AFF]/40"
         />
       </div>
 
       <div className="flex gap-4">
         {/* Table */}
-        <div className="flex-1 bg-white rounded-xl border border-white/[0.08] overflow-hidden">
+        <div className="flex-1 bg-[#0f1120] rounded-xl border border-white/[0.08] overflow-hidden">
           {isLoadingPerformers ? (
             <div className="p-8 text-center text-sm text-[#6b7194]">Загрузка...</div>
           ) : (
@@ -94,7 +94,7 @@ export function AdminPerformersPage() {
                     <tr
                       key={p.id}
                       onClick={() => setSelected(p.id === selected?.id ? null : p)}
-                      className={`border-b border-white/[0.04] hover:bg-white/[0.03] transition-colors cursor-pointer ${selected?.id === p.id ? "bg-blue-50" : ""}`}
+                      className={`border-b border-white/[0.04] hover:bg-white/[0.03] transition-colors cursor-pointer ${selected?.id === p.id ? "bg-[#006AFF]/10" : ""}`}
                     >
                       <td className="px-4 py-3 font-medium text-white">{p.name}</td>
                       <td className="px-4 py-3 text-[#8b90a8]">{p.city || "—"}</td>
@@ -106,16 +106,16 @@ export function AdminPerformersPage() {
                       </td>
                       <td className="px-4 py-3 text-[#a0a5c0]">{p.completedOrders}</td>
                       <td className="px-4 py-3 font-semibold text-white">{formatPrice(p.balance)}</td>
-                      <td className="px-4 py-3 text-orange-600 font-semibold">{p.pendingBalance > 0 ? formatPrice(p.pendingBalance) : <span className="text-gray-300">—</span>}</td>
+                      <td className="px-4 py-3 text-orange-600 font-semibold">{p.pendingBalance > 0 ? formatPrice(p.pendingBalance) : <span className="text-[#4a4f68]">—</span>}</td>
                       <td className="px-4 py-3">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${VERIFICATION_COLORS[p.verificationStatus] ?? "bg-gray-100 text-[#8b90a8]"}`}>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${VERIFICATION_COLORS[p.verificationStatus] ?? "bg-white/[0.06] text-[#8b90a8]"}`}>
                           {VERIFICATION_LABELS[p.verificationStatus] ?? p.verificationStatus}
                         </span>
                       </td>
                       <td className="px-4 py-3">
                         {p.isOnline
                           ? <Wifi size={15} className="text-green-500" />
-                          : <WifiOff size={15} className="text-gray-300" />}
+                          : <WifiOff size={15} className="text-[#4a4f68]" />}
                       </td>
                     </tr>
                   ))}
@@ -130,7 +130,7 @@ export function AdminPerformersPage() {
 
         {/* Detail panel */}
         {selected && (
-          <div className="w-72 shrink-0 bg-white rounded-xl border border-white/[0.08] p-4 self-start space-y-4">
+          <div className="w-72 shrink-0 bg-[#0f1120] rounded-xl border border-white/[0.08] p-4 self-start space-y-4">
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold text-white">Профиль</p>
               <button onClick={() => setSelected(null)} className="text-[#6b7194] hover:text-[#8b90a8] text-lg leading-none">×</button>
@@ -182,7 +182,7 @@ export function AdminPerformersPage() {
                   placeholder="Сумма (±)"
                   value={balanceDelta}
                   onChange={(e) => setBalanceDelta(e.target.value)}
-                  className="flex-1 border border-white/[0.08] rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300"
+                  className="flex-1 border border-white/[0.08] rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#006AFF]/40"
                 />
                 <button
                   disabled={actionLoading || !balanceDelta.trim()}
@@ -210,7 +210,7 @@ function Row({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="text-xs text-[#6b7194]">{label}</p>
-      <p className="text-gray-800">{value}</p>
+      <p className="text-white">{value}</p>
     </div>
   );
 }

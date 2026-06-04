@@ -21,15 +21,15 @@ function StatusBadge({ status }: { status: string }) {
     completed: "bg-green-100 text-green-700",
     cancelled: "bg-red-100 text-red-700",
     dispute_opened: "bg-orange-100 text-orange-700",
-    in_progress: "bg-blue-100 text-blue-700",
+    in_progress: "bg-[#001a4d] text-blue-700",
     searching_performer: "bg-purple-100 text-purple-700",
     waiting_client_confirmation: "bg-yellow-100 text-yellow-700",
-    accepted: "bg-blue-100 text-blue-700",
-    on_the_way: "bg-blue-100 text-blue-700",
-    pending_payment: "bg-gray-100 text-[#a0a5c0]",
+    accepted: "bg-[#001a4d] text-blue-700",
+    on_the_way: "bg-[#001a4d] text-blue-700",
+    pending_payment: "bg-white/[0.06] text-[#a0a5c0]",
   };
   return (
-    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${colors[status] ?? "bg-gray-100 text-[#8b90a8]"}`}>
+    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${colors[status] ?? "bg-white/[0.06] text-[#8b90a8]"}`}>
       {ORDER_STATUS_LABELS[status] ?? status}
     </span>
   );
@@ -61,10 +61,10 @@ export function AdminOverviewPage() {
         </div>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <KpiCard label="Активные заказы" value={stats?.activeOrders ?? 0} icon={<ShoppingBag size={16} className="text-blue-600" />} color="bg-blue-50" />
+          <KpiCard label="Активные заказы" value={stats?.activeOrders ?? 0} icon={<ShoppingBag size={16} className="text-[#6699ff]" />} color="bg-[#006AFF]/10" />
           <KpiCard label="Завершённые" value={stats?.completedOrders ?? 0} icon={<CheckCircle size={16} className="text-green-600" />} color="bg-green-50" />
           <KpiCard label="Поиск исполнителя" value={stats?.searchingOrders ?? 0} icon={<Search size={16} className="text-purple-600" />} color="bg-purple-50" />
-          <KpiCard label="Исполнителей" value={stats?.performersTotal ?? 0} icon={<Users size={16} className="text-[#8b90a8]" />} color="bg-gray-100" />
+          <KpiCard label="Исполнителей" value={stats?.performersTotal ?? 0} icon={<Users size={16} className="text-[#8b90a8]" />} color="bg-white/[0.06]" />
           <KpiCard label="Открытых споров" value={stats?.openDisputes ?? 0} icon={<AlertTriangle size={16} className="text-orange-600" />} color="bg-orange-50" />
           <KpiCard label="Выплат в ожидании" value={stats?.pendingPayouts ?? 0} icon={<Clock size={16} className="text-yellow-600" />} color="bg-yellow-50" />
           <KpiCard label="Выручка (всего)" value={formatPrice(stats?.revenueTotal ?? 0)} icon={<TrendingUp size={16} className="text-emerald-600" />} color="bg-emerald-50" />
@@ -73,7 +73,7 @@ export function AdminOverviewPage() {
       )}
 
       {/* Recent orders */}
-      <div className="bg-white rounded-xl border border-white/[0.08]">
+      <div className="bg-[#0f1120] rounded-xl border border-white/[0.08]">
         <div className="px-5 py-4 border-b border-white/[0.05]">
           <p className="text-sm font-semibold text-white">Последние заказы</p>
         </div>
@@ -96,7 +96,7 @@ export function AdminOverviewPage() {
                   <td className="px-5 py-3 font-mono text-xs text-[#6b7194]">{order.id.slice(0, 8)}…</td>
                   <td className="px-5 py-3 font-medium text-white">{order.clientName}</td>
                   <td className="px-5 py-3 text-[#8b90a8]">{order.serviceName}</td>
-                  <td className="px-5 py-3 text-[#8b90a8]">{order.performerName ?? <span className="text-gray-300">—</span>}</td>
+                  <td className="px-5 py-3 text-[#8b90a8]">{order.performerName ?? <span className="text-[#4a4f68]">—</span>}</td>
                   <td className="px-5 py-3 font-semibold text-white">{formatPrice(order.priceTotal)}</td>
                   <td className="px-5 py-3"><StatusBadge status={order.status} /></td>
                   <td className="px-5 py-3 text-[#6b7194] text-xs">{new Date(order.createdAt).toLocaleDateString("ru-RU")}</td>

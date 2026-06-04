@@ -28,7 +28,7 @@ const SEVERITY_COLORS: Record<string, string> = {
   critical: "bg-red-100 text-red-700",
   high: "bg-orange-100 text-orange-700",
   medium: "bg-yellow-100 text-yellow-700",
-  low: "bg-gray-100 text-[#8b90a8]",
+  low: "bg-white/[0.06] text-[#8b90a8]",
 };
 
 const ERROR_EVENT_NAMES = ["react_error", "api_error", "auth_error", "db_error", "network_error", "realtime_error"];
@@ -150,7 +150,7 @@ export function AdminEventLogsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-5 bg-gray-100 p-1 rounded-xl w-fit">
+      <div className="flex gap-1 mb-5 bg-white/[0.06] p-1 rounded-xl w-fit">
         {([
           { id: "events", label: "События", icon: <Activity size={14} /> },
           { id: "errors", label: `Ошибки${errorEventCount > 0 ? ` (${errors.length})` : ""}`, icon: <AlertTriangle size={14} /> },
@@ -161,7 +161,7 @@ export function AdminEventLogsPage() {
             key={t.id}
             onClick={() => setTab(t.id)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              tab === t.id ? "bg-white text-white shadow-sm" : "text-[#6b7194] hover:text-[#a0a5c0]"
+              tab === t.id ? "bg-[#0f1120] text-white shadow-sm" : "text-[#6b7194] hover:text-[#a0a5c0]"
             }`}
           >
             {t.icon}{t.label}
@@ -224,10 +224,10 @@ export function AdminEventLogsPage() {
                         <tr
                           key={e.id}
                           onClick={() => setExpandedId(expandedId === e.id ? null : e.id)}
-                          className={`border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors ${ERROR_EVENT_NAMES.includes(e.event_name) ? "bg-red-50/40" : ""}`}
+                          className={`border-b border-gray-50 hover:bg-white/[0.04] cursor-pointer transition-colors ${ERROR_EVENT_NAMES.includes(e.event_name) ? "bg-red-900/30/40" : ""}`}
                         >
                           <td className="px-4 py-2.5">
-                            <span className={`text-xs font-mono font-semibold ${ERROR_EVENT_NAMES.includes(e.event_name) ? "text-red-600" : "text-[#a0a5c0]"}`}>
+                            <span className={`text-xs font-mono font-semibold ${ERROR_EVENT_NAMES.includes(e.event_name) ? "text-red-400" : "text-[#a0a5c0]"}`}>
                               {e.event_name}
                             </span>
                             {e.error_message && (
@@ -285,7 +285,7 @@ export function AdminEventLogsPage() {
                         <tr
                           key={e.id}
                           onClick={() => setExpandedId(expandedId === e.id ? null : e.id)}
-                          className="border-b border-gray-50 hover:bg-red-50/30 cursor-pointer transition-colors"
+                          className="border-b border-gray-50 hover:bg-red-900/30/30 cursor-pointer transition-colors"
                         >
                           <td className="px-4 py-2.5 max-w-[260px]">
                             <p className="text-xs font-semibold text-red-700 truncate">{e.error_message}</p>
@@ -293,7 +293,7 @@ export function AdminEventLogsPage() {
                           <td className="px-4 py-2.5 text-xs text-[#6b7194]">{e.component ?? "—"}</td>
                           <td className="px-4 py-2.5 text-xs text-[#6b7194]">{e.page ?? "—"}</td>
                           <td className="px-4 py-2.5">
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${SEVERITY_COLORS[e.severity] ?? "bg-gray-100 text-[#8b90a8]"}`}>
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${SEVERITY_COLORS[e.severity] ?? "bg-white/[0.06] text-[#8b90a8]"}`}>
                               {e.severity}
                             </span>
                           </td>
@@ -302,7 +302,7 @@ export function AdminEventLogsPage() {
                           </td>
                         </tr>
                         {expandedId === e.id && e.stack_trace && (
-                          <tr key={e.id + "_stack"} className="bg-red-50/20 border-b border-gray-100">
+                          <tr key={e.id + "_stack"} className="bg-red-900/30/20 border-b border-gray-100">
                             <td colSpan={5} className="px-4 py-2.5">
                               <pre className="text-xs text-[#8b90a8] whitespace-pre-wrap font-mono bg-white/[0.04] rounded p-2 max-h-40 overflow-auto">
                                 {e.stack_trace}
@@ -348,7 +348,7 @@ export function AdminEventLogsPage() {
                       </div>
                       <div className="h-2 bg-white/[0.06] rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-blue-500 rounded-full transition-all"
+                          className="h-full bg-[#006AFF]/100 rounded-full transition-all"
                           style={{ width: `${pct}%` }}
                         />
                       </div>
@@ -383,7 +383,7 @@ export function AdminEventLogsPage() {
                         <tr
                           key={log.id}
                           onClick={() => setExpandedId(expandedId === String(log.id) ? null : String(log.id))}
-                          className="border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors"
+                          className="border-b border-gray-50 hover:bg-white/[0.04] cursor-pointer transition-colors"
                         >
                           <td className="px-4 py-2.5">
                             <span className="text-xs font-mono font-semibold text-[#a0a5c0]">{log.action}</span>

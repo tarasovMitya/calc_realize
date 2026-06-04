@@ -46,7 +46,7 @@ export function AdminAnalyticsPage() {
         <button
           onClick={() => loadAll()}
           disabled={isLoading}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#8b90a8] bg-white border border-gray-200 rounded-lg hover:bg-white/[0.03] transition-colors disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#8b90a8] bg-[#0f1120] border border-gray-200 rounded-lg hover:bg-white/[0.03] transition-colors disabled:opacity-50"
         >
           <RefreshCw size={12} className={isLoading ? "animate-spin" : ""} />
           Обновить
@@ -91,7 +91,7 @@ export function AdminAnalyticsPage() {
       {isLoading ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-xl border border-gray-200 p-5 animate-pulse h-24" />
+            <div key={i} className="bg-[#0f1120] rounded-xl border border-gray-200 p-5 animate-pulse h-24" />
           ))}
         </div>
       ) : (

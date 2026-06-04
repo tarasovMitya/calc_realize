@@ -59,7 +59,7 @@ export function AdminDisputesPage() {
 
       <div className="flex gap-4">
         {/* Table */}
-        <div className="flex-1 bg-white rounded-xl border border-white/[0.08] overflow-hidden">
+        <div className="flex-1 bg-[#0f1120] rounded-xl border border-white/[0.08] overflow-hidden">
           {isLoadingDisputes ? (
             <div className="p-8 text-center text-sm text-[#6b7194]">Загрузка...</div>
           ) : (
@@ -101,7 +101,7 @@ export function AdminDisputesPage() {
                           <button
                             disabled={actionLoading === d.orderId + "cancelled"}
                             onClick={(e) => { e.stopPropagation(); resolve(d.orderId, "cancelled"); }}
-                            className="px-2.5 py-1 bg-red-50 text-red-600 rounded text-xs font-medium hover:bg-red-100 transition-colors disabled:opacity-50"
+                            className="px-2.5 py-1 bg-red-900/30 text-red-400 rounded text-xs font-medium hover:bg-red-100 transition-colors disabled:opacity-50"
                           >
                             {actionLoading === d.orderId + "cancelled" ? "..." : "Отменить"}
                           </button>
@@ -112,7 +112,7 @@ export function AdminDisputesPage() {
                   {disputes.length === 0 && (
                     <tr>
                       <td colSpan={7} className="px-5 py-12 text-center text-[#6b7194]">
-                        <AlertTriangle size={24} className="mx-auto mb-2 text-gray-300" />
+                        <AlertTriangle size={24} className="mx-auto mb-2 text-[#4a4f68]" />
                         <p className="text-sm">Открытых споров нет</p>
                       </td>
                     </tr>
@@ -125,7 +125,7 @@ export function AdminDisputesPage() {
 
         {/* Detail panel */}
         {selectedDispute && (
-          <div className="w-72 shrink-0 bg-white rounded-xl border border-orange-200 p-4 self-start space-y-4">
+          <div className="w-72 shrink-0 bg-[#0f1120] rounded-xl border border-orange-200 p-4 self-start space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <AlertTriangle size={14} className="text-orange-500" />
@@ -141,18 +141,18 @@ export function AdminDisputesPage() {
               </div>
               <div>
                 <p className="text-xs text-[#6b7194]">Клиент</p>
-                <p className="text-gray-800">{selectedDispute.clientName}</p>
+                <p className="text-white">{selectedDispute.clientName}</p>
                 {selectedDispute.clientEmail && (
                   <p className="text-xs text-[#6b7194] mt-0.5">{selectedDispute.clientEmail}</p>
                 )}
               </div>
               <div>
                 <p className="text-xs text-[#6b7194]">Исполнитель</p>
-                <p className="text-gray-800">{selectedDispute.performerName}</p>
+                <p className="text-white">{selectedDispute.performerName}</p>
               </div>
               <div>
                 <p className="text-xs text-[#6b7194]">Услуга</p>
-                <p className="text-gray-800">{selectedDispute.serviceName}</p>
+                <p className="text-white">{selectedDispute.serviceName}</p>
               </div>
               <div>
                 <p className="text-xs text-[#6b7194]">Сумма</p>
@@ -178,7 +178,7 @@ export function AdminDisputesPage() {
               <button
                 disabled={chatLoading}
                 onClick={() => openChat(selectedDispute)}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors border border-blue-200 disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-[#006AFF]/10 text-blue-700 rounded-lg text-sm font-medium hover:bg-[#001a4d] transition-colors border border-blue-200 disabled:opacity-50"
               >
                 <MessageCircle size={14} />
                 {chatLoading ? "Открываем чат..." : "Написать клиенту"}
@@ -194,7 +194,7 @@ export function AdminDisputesPage() {
               <button
                 disabled={!!actionLoading}
                 onClick={() => resolve(selectedDispute.orderId, "cancelled")}
-                className="w-full px-3 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors border border-red-200 disabled:opacity-50"
+                className="w-full px-3 py-2 bg-red-900/30 text-red-400 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors border border-red-200 disabled:opacity-50"
               >
                 Отменить заказ
               </button>

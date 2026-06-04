@@ -112,7 +112,7 @@ export function AdminChatsPage() {
         <div className="flex-1 overflow-y-auto">
           {isLoadingList ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 size={20} className="text-gray-300 animate-spin" />
+              <Loader2 size={20} className="text-[#4a4f68] animate-spin" />
             </div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center gap-2 py-12 text-center px-4">
