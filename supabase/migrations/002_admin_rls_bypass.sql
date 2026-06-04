@@ -1,24 +1,22 @@
 -- ============================================================
--- Migration 002 — Admin bypass for profiles RLS
--- Fixes: affiliate managers not showing in task creation dropdown
--- Run in Supabase SQL Editor (Dashboard → SQL Editor)
+-- Migration 002 — Fix is_admin() to include 'admin' role
+-- Fixes: affiliate manager dropdown empty in task creation modal
+-- Root cause: is_admin() was missing 'admin' role — admins couldn't
+--   read other users' profiles via admins_read_all_profiles policy
+-- APPLIED to production 2026-06-04 via Management API
 -- ============================================================
 
--- Helper: returns current user's role bypassing RLS (security definer = runs as owner, no RLS)
-CREATE OR REPLACE FUNCTION public.get_my_role()
-RETURNS text AS $$
-  SELECT role FROM profiles WHERE user_id = auth.uid() LIMIT 1;
+-- Fix: add 'admin' to is_admin() role list
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS boolean AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM profiles
+    WHERE user_id = auth.uid()
+    AND role IN ('admin', 'super_admin', 'support_admin', 'finance_admin', 'verifier', 'operator')
+  );
 $$ LANGUAGE sql SECURITY DEFINER STABLE;
 
--- Admin bypass: allow admin/super_admin to read all profiles
--- (existing "profiles_select" policy still covers own-row access)
-DROP POLICY IF EXISTS "profiles_admin_select" ON profiles;
-CREATE POLICY "profiles_admin_select" ON profiles
-  FOR SELECT
-  USING (public.get_my_role() IN ('admin', 'super_admin'));
-
--- ─── affiliate_tasks: admins can manage, managers can read their own ──────────
--- (only needed if affiliate_tasks has RLS enabled; skip if not)
+-- affiliate_tasks: ensure admin can manage all tasks
 DO $$
 BEGIN
   IF EXISTS (
@@ -31,14 +29,6 @@ BEGIN
     DROP POLICY IF EXISTS "affiliate_tasks_admin_all" ON affiliate_tasks;
     CREATE POLICY "affiliate_tasks_admin_all" ON affiliate_tasks
       FOR ALL
-      USING (public.get_my_role() IN ('admin', 'super_admin'));
-
-    DROP POLICY IF EXISTS "affiliate_tasks_manager_select" ON affiliate_tasks;
-    CREATE POLICY "affiliate_tasks_manager_select" ON affiliate_tasks
-      FOR SELECT
-      USING (
-        public.get_my_role() = 'affiliate_manager'
-        AND (target = 'all' OR target = auth.uid()::text)
-      );
+      USING (is_admin());
   END IF;
 END $$;
