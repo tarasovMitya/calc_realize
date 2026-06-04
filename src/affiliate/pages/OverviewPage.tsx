@@ -68,7 +68,7 @@ export function AffiliateOverviewPage() {
 
       <div className="mt-6 rounded-xl p-4 text-sm border" style={{ background: "rgba(0,106,255,0.07)", borderColor: "rgba(0,106,255,0.15)" }}>
         <span className="font-semibold text-[#6ba3ff]">Как считается заработок:</span>
-        <span className="text-[#5a7aaa] ml-1">15% от комиссии платформы (10% от суммы заказа) за каждый выполненный заказ ваших исполнителей.</span>
+        <span className="text-[#5a7aaa] ml-1">10% от комиссии платформы (20% от суммы заказа) за каждый выполненный заказ ваших исполнителей. Пример: заказ 10 000 ₽ → комиссия платформы 2 000 ₽ → ваш заработок 200 ₽.</span>
       </div>
     </div>
   );

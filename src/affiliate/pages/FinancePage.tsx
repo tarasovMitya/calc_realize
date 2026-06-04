@@ -103,8 +103,8 @@ export function AffiliateFinancePage() {
                 <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b7194]">Дата</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b7194]">Исполнитель</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b7194]">Сумма заказа</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b7194]">Комиссия площадки (10%)</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b7194]">Мой заработок (15%)</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b7194]">Комиссия платформы (20%)</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-[#6b7194]">Мой заработок (10% от комиссии)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.04]">
